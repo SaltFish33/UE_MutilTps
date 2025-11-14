@@ -99,6 +99,16 @@ void UMenu::OnCreateSession(bool bWasSuccessful)
 		UWorld* World = GetWorld();
 		if (World)
 		{
+			// 使用 FString::Printf 来格式化字符串，且在打印前校验 GEngine 指针，移除多余逗号
+			if (GEngine)
+			{
+				GEngine->AddOnScreenDebugMessage(
+					-1,
+					15.f,
+					FColor::Blue,
+					FString::Printf(TEXT("Traveling to: %s"), *PathToLobby)
+				);
+			}
 			World->ServerTravel(PathToLobby);
 		}
 	}
@@ -217,3 +227,4 @@ void UMenu::MenuTearDown()
 		}
 	}
 }
+
