@@ -43,13 +43,13 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	Speed = Lateral.Size();
 
 	UCharacterMovementComponent* MoveComp =  PlayerCharacter->GetCharacterMovement();
-	if (MoveComp)
+	if (MoveComp == nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Failed to Get MovementComponent"));
 		return;
 	}
 	// 是否在空中
-	bIsInAir = MoveComp ? MoveComp->IsFalling() : false;
+	bIsInAir = MoveComp->IsFalling();
 	
 	bIsRunning = MoveComp->GetCurrentAcceleration().Size() > 0.f;
 }

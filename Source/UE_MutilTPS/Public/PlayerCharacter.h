@@ -34,6 +34,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> JumpAction;
 
+	UPROPERTY(VisibleAnywhere, Category="Debug")
+	bool bIsFalling;
+
 protected:
 	virtual void BeginPlay() override;
 

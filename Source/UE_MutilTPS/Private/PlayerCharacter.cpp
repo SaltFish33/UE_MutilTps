@@ -6,6 +6,7 @@
 #include "Engine/LocalPlayer.h"
 #include "EnhancedInputComponent.h"
 #include "InputActionValue.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -20,6 +21,9 @@ APlayerCharacter::APlayerCharacter()
 
 	this->Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	this->Camera->SetupAttachment(this->SpringArm, USpringArmComponent::SocketName);
+
+	this->bUseControllerRotationYaw = false;
+	this->GetCharacterMovement()->bOrientRotationToMovement = true;
 }
 
 void APlayerCharacter::BeginPlay()
@@ -32,6 +36,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	bIsFalling = GetCharacterMovement()->IsFalling();
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
