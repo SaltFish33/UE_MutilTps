@@ -31,6 +31,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> LookAction;
 
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	TObjectPtr<UInputAction> JumpAction;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -46,4 +49,8 @@ private:
 	// Input callbacks
 	void Move(const struct FInputActionValue& Value);
 	void Look(const struct FInputActionValue& Value);
+
+	// Jump callbacks
+	void StartJump();
+	void StopJump();
 };

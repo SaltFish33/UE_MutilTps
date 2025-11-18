@@ -48,6 +48,13 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		{
 			EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Look);
 		}
+
+		// 绑定跳跃动作（按下开始跳跃，松开停止跳跃）
+		if (JumpAction)
+		{
+			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &APlayerCharacter::StartJump);
+			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &APlayerCharacter::StopJump);
+		}
 	}
 
 }
@@ -87,4 +94,14 @@ void APlayerCharacter::Look(const struct FInputActionValue& Value)
 	FVector2D LookVector = Value.Get<FVector2D>();
 	AddControllerYawInput(LookVector.X);
 	AddControllerPitchInput(LookVector.Y);
+}
+
+void APlayerCharacter::StopJump()
+{
+    StopJumping();
+}
+
+void APlayerCharacter::StartJump()
+{
+    Jump();
 }
