@@ -8,6 +8,8 @@
 #include "InputActionValue.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Net/UnrealNetwork.h"
+#include "UE_MutilTPS/Weapon/WeaponBase.h"
 #include "UE_MutilTPS/Widget/OverHeadWidget.h"
 
 // Sets default values
@@ -31,6 +33,13 @@ APlayerCharacter::APlayerCharacter()
 	this->OverHeadWidget->SetupAttachment(RootComponent);
 }
 
+void APlayerCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(APlayerCharacter, OverlappingWeapon);
+}
+
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -40,8 +49,11 @@ void APlayerCharacter::BeginPlay()
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	bIsFalling = GetCharacterMovement()->IsFalling();
+	
+	if (OverlappingWeapon)
+	{
+		OverlappingWeapon->ShowPickUpWidget(true);
+	}
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

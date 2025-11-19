@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
 
+class AWeaponBase;
 class UWidgetComponent;
 class UCameraComponent;
 class USpringArmComponent;
@@ -35,9 +36,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> JumpAction;
 
-	UPROPERTY(VisibleAnywhere, Category="Debug")
-	bool bIsFalling;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
+	FORCEINLINE
+	void SetOverlappingWeapon(AWeaponBase* Weapon) { this->OverlappingWeapon = Weapon;}
+	
 protected:
 	virtual void BeginPlay() override;
 
@@ -60,4 +63,7 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	TObjectPtr<UWidgetComponent> OverHeadWidget;
+
+	UPROPERTY(Replicated)
+	TObjectPtr<AWeaponBase> OverlappingWeapon;
 };
