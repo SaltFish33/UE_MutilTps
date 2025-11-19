@@ -24,6 +24,7 @@
 #include "Interfaces/OnlineSessionInterface.h"
 #include "Menu.generated.h"
 
+class UButton;
 /**
  * 
  */
@@ -55,7 +56,7 @@ protected:
 private:
 
 	UPROPERTY(meta = (BindWidget))
-	class UButton* HostButton;
+	UButton* HostButton;
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* JoinButton;

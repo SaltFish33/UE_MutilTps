@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
 
+class UWidgetComponent;
 class UCameraComponent;
 class USpringArmComponent;
 class UInputMappingContext;
@@ -56,4 +57,7 @@ private:
 	// Jump callbacks
 	void StartJump();
 	void StopJump();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	TObjectPtr<UWidgetComponent> OverHeadWidget;
 };

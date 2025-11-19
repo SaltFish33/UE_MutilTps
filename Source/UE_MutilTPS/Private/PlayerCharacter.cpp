@@ -6,7 +6,9 @@
 #include "Engine/LocalPlayer.h"
 #include "EnhancedInputComponent.h"
 #include "InputActionValue.h"
+#include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "UE_MutilTPS/Widget/OverHeadWidget.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -24,6 +26,9 @@ APlayerCharacter::APlayerCharacter()
 
 	this->bUseControllerRotationYaw = false;
 	this->GetCharacterMovement()->bOrientRotationToMovement = true;
+
+	this->OverHeadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverHeadWidget"));
+	this->OverHeadWidget->SetupAttachment(RootComponent);
 }
 
 void APlayerCharacter::BeginPlay()
