@@ -11,7 +11,6 @@
 #include "Net/UnrealNetwork.h"
 #include "UE_MutilTPS/Componts/CombatComponent.h"
 #include "UE_MutilTPS/Weapon/WeaponBase.h"
-#include "UE_MutilTPS/Widget/OverHeadWidget.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
