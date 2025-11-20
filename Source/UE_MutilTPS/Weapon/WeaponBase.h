@@ -1,6 +1,8 @@
-// 文件说明：
-// 定义武器的基本类型 AWeaponBase，包含 Mesh、Overlap Sphere、拾取 Widget 以及武器状态枚举。
-// 设计要点：使用 EWeaponState 管理武器生命周期（Init/Equipped/Dropped），并在服务器控制重叠检测。
+// 文件说明（摘要）：
+// AWeaponBase 定义了武器的基础结构：视觉 Mesh、检测玩家的 AreaSphere、用于提示的 Widget，以及武器状态枚举。
+// 设计要点：
+// - 枚举 EWeaponState 用于标识武器的当前生命周期（Init/Equipped/Dropped），便于其它系统（如拾取、掉落、物理）依据状态采取行为。
+// - 重叠检测仅在服务器上启用，并通过 PlayerCharacter 的 Replicated 变量将 UI 状态同步到对应客户端，减少不必要的网络广播。
 
 #pragma once
 
@@ -31,9 +33,11 @@ public:
 	AWeaponBase();
 	virtual void Tick(float DeltaTime) override;
 
-	// ShowPickUpWidget: 控制拾取提示 Widget 的显示
-	// 参数 bShowWidget: true 显示，false 隐藏
+	// 控制拾取提示显示/隐藏
 	void ShowPickUpWidget(bool bShowWidget);
+
+	// 直接设置武器状态（简单的 setter），其它模块会依据 WeaponState 做进一步处理
+	FORCEINLINE void SetWeaponState(EWeaponState State) { this->WeaponState = State; }
 	
 protected:
 	virtual void BeginPlay() override;
@@ -50,6 +54,7 @@ protected:
 		const FHitResult& SweepResult
 	);
 
+	// OnSphereEndOverLap: AreaSphere 与 Actor 结束重叠时调用
 	UFUNCTION()
 	virtual void OnSphereEndOverLap(
 		UPrimitiveComponent* OverlappedComponent,
@@ -59,20 +64,19 @@ protected:
 	);
 
 private:
-	// 武器 Mesh：视觉部分与碰撞设置（仅作展示 / 物理用）
+	// 武器 Mesh：视觉与物理表现
 	UPROPERTY(EditDefaultsOnly, Category="Weapon Properties")
 	TObjectPtr<UStaticMeshComponent> WeaponMesh;
 
-	// 用于检测玩家进入范围的球形碰撞组件
+	// AreaSphere：用于检测玩家进入拾取范围（Overlap），仅在服务器上启用以保证权威性
 	UPROPERTY(EditDefaultsOnly, Category="Weapon Properties")
 	TObjectPtr<USphereComponent> AreaSphere;
 
-	// 当前武器状态（Init/Equipped/Dropped），用于客户端/服务器逻辑分支
+	// 当前武器状态，供游戏逻辑区分行为
 	UPROPERTY(VisibleAnywhere, Category="Weapon Properties")
 	EWeaponState WeaponState;
 
-	// 拾取提示 UI（WidgetComponent），在蓝图中可设置要显示的 Widget
+	// 拾取提示 UI（WidgetComponent），用于在玩家靠近时显示交互提示
 	UPROPERTY(VisibleAnywhere, Category="Weapon Properties")
 	TObjectPtr<UWidgetComponent> PickUpWidget;
 };
-

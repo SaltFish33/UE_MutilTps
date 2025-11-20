@@ -7,6 +7,8 @@
 #include "CombatComponent.generated.h"
 
 
+class AWeaponBase;
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UE_MUTILTPS_API UCombatComponent : public UActorComponent
 {
@@ -15,7 +17,14 @@ class UE_MUTILTPS_API UCombatComponent : public UActorComponent
 public:	
 	UCombatComponent();
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	
+	friend class APlayerCharacter;
+
+	UFUNCTION()
+	void EquipWeapon(AWeaponBase* Weapon);
 protected:
 	virtual void BeginPlay() override;
+
+private:
+	TObjectPtr<AWeaponBase> EquippedWeapon;
+	TObjectPtr<APlayerCharacter> PlayerCharacter;
 };
