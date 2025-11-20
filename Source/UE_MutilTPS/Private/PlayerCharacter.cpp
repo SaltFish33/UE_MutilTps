@@ -9,6 +9,7 @@
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "UE_MutilTPS/Componts/CombatComponent.h"
 #include "UE_MutilTPS/Weapon/WeaponBase.h"
 #include "UE_MutilTPS/Widget/OverHeadWidget.h"
 
@@ -31,13 +32,26 @@ APlayerCharacter::APlayerCharacter()
 
 	this->OverHeadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverHeadWidget"));
 	this->OverHeadWidget->SetupAttachment(RootComponent);
+
+	this->CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
+	this->CombatComponent->SetIsReplicated(true);
 }
 
 void APlayerCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(APlayerCharacter, OverlappingWeapon);
+	DOREPLIFETIME_CONDITION(APlayerCharacter, OverlappingWeapon, COND_OwnerOnly);
+}
+
+void APlayerCharacter::SetOverlappingWeapon(AWeaponBase* Weapon)
+{
+	if (IsLocallyControlled())
+	{
+		Weapon->ShowPickUpWidget(Weapon != nullptr);
+	}
+	this->OverlappingWeapon = Weapon;
+	
 }
 
 void APlayerCharacter::BeginPlay()
@@ -49,11 +63,6 @@ void APlayerCharacter::BeginPlay()
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
-	if (OverlappingWeapon)
-	{
-		OverlappingWeapon->ShowPickUpWidget(true);
-	}
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -121,6 +130,15 @@ void APlayerCharacter::Look(const struct FInputActionValue& Value)
 void APlayerCharacter::StopJump()
 {
     StopJumping();
+}
+
+void APlayerCharacter::OnRep_OverlappingWeapon(AWeaponBase* LastWeapon)
+{
+	OverlappingWeapon->ShowPickUpWidget(OverlappingWeapon != nullptr);
+	if (LastWeapon)
+	{
+		LastWeapon->ShowPickUpWidget(false);
+	}
 }
 
 void APlayerCharacter::StartJump()

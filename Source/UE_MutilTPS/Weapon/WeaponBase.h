@@ -50,6 +50,14 @@ protected:
 		const FHitResult& SweepResult
 	);
 
+	UFUNCTION()
+	virtual void OnSphereEndOverLap(
+		UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex
+	);
+
 private:
 	// 武器 Mesh：视觉部分与碰撞设置（仅作展示 / 物理用）
 	UPROPERTY(EditDefaultsOnly, Category="Weapon Properties")

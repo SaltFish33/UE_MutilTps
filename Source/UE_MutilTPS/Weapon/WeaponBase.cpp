@@ -49,6 +49,7 @@ void AWeaponBase::BeginPlay()
 		AreaSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 		// 在服务器注册重叠回调，回调中会把 this 记录到玩家的 OverlappingWeapon（并通过复制同步到客户端）
 		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeaponBase::OnSphereOverLap);
+		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeaponBase::OnSphereEndOverLap);
 	}
 }
 
@@ -67,6 +68,16 @@ void AWeaponBase::OnSphereOverLap(UPrimitiveComponent* OverlappedComponent, AAct
 	if (PlayerCharacter)
 	{
 		PlayerCharacter->SetOverlappingWeapon(this);
+	}
+}
+
+void AWeaponBase::OnSphereEndOverLap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(OtherActor);
+	if (PlayerCharacter)
+	{
+		PlayerCharacter->SetOverlappingWeapon(nullptr);
 	}
 }
 

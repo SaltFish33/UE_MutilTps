@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
 
+class UCombatComponent;
 class AWeaponBase;
 class UWidgetComponent;
 class UCameraComponent;
@@ -38,8 +39,8 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
-	FORCEINLINE
-	void SetOverlappingWeapon(AWeaponBase* Weapon) { this->OverlappingWeapon = Weapon;}
+	// Server-Side
+	void SetOverlappingWeapon(AWeaponBase* Weapon);
 	
 protected:
 	virtual void BeginPlay() override;
@@ -64,6 +65,14 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	TObjectPtr<UWidgetComponent> OverHeadWidget;
 
-	UPROPERTY(Replicated)
+	// Replicated Property
+	UPROPERTY(ReplicatedUsing=OnRep_OverlappingWeapon)
 	TObjectPtr<AWeaponBase> OverlappingWeapon;
+
+	// Client-Side
+	UFUNCTION()
+	void OnRep_OverlappingWeapon(AWeaponBase* LastWeapon);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
+	TObjectPtr<UCombatComponent> CombatComponent;
 };
