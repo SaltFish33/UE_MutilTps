@@ -93,6 +93,9 @@ private:
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeaponBase* LastWeapon);
 
+	UFUNCTION(Server, Reliable)
+	void ServerPressEquipWeapon();
+
 	// 战斗组件，用于管理装备逻辑
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	TObjectPtr<UCombatComponent> CombatComponent;

@@ -8,6 +8,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Net/UnrealNetwork.h"
 #include "WeaponBase.generated.h"
 
 class UWidgetComponent;
@@ -37,7 +38,9 @@ public:
 	void ShowPickUpWidget(bool bShowWidget);
 
 	// 直接设置武器状态（简单的 setter），其它模块会依据 WeaponState 做进一步处理
-	FORCEINLINE void SetWeaponState(EWeaponState State) { this->WeaponState = State; }
+	void SetWeaponState(EWeaponState State);
+
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -73,8 +76,11 @@ private:
 	TObjectPtr<USphereComponent> AreaSphere;
 
 	// 当前武器状态，供游戏逻辑区分行为
-	UPROPERTY(VisibleAnywhere, Category="Weapon Properties")
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing=OnRep_WeaponState, Category="Weapon Properties")
 	EWeaponState WeaponState;
+
+	UFUNCTION()
+	void OnRep_WeaponState();
 
 	// 拾取提示 UI（WidgetComponent），用于在玩家靠近时显示交互提示
 	UPROPERTY(VisibleAnywhere, Category="Weapon Properties")

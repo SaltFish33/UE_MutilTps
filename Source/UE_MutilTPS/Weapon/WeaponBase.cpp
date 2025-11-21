@@ -68,6 +68,13 @@ void AWeaponBase::Tick(float DeltaTime)
 
 }
 
+void AWeaponBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AWeaponBase, WeaponState);
+}
+
 // OnSphereOverLap 说明：
 // 参数与 OnComponentBeginOverlap 相同（UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, ...）
 // 行为：
@@ -96,6 +103,11 @@ void AWeaponBase::OnSphereEndOverLap(UPrimitiveComponent* OverlappedComponent, A
 	}
 }
 
+void AWeaponBase::OnRep_WeaponState()
+{
+	this->SetWeaponState(this->WeaponState);
+}
+
 // ShowPickUpWidget 说明：
 // 参数 bShowWidget：是否显示头顶拾取提示。
 // 说明：WidgetComponent 的 SetVisibility 既可以在服务器上执行（如果组件被复制到客户端），也可以在客户端本地控制以获得更即时的视觉反馈。
@@ -107,6 +119,21 @@ void AWeaponBase::ShowPickUpWidget(bool bShowWidget)
 	if (PickUpWidget != nullptr)
 	{
 		PickUpWidget->SetVisibility(bShowWidget);
+	}
+}
+
+void AWeaponBase::SetWeaponState(EWeaponState State)
+{
+	this->WeaponState = State;
+	switch (this->WeaponState)
+	{
+		case EWeaponState::EWS_Equipped:
+			this->ShowPickUpWidget(false);
+			this->AreaSphere->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+			break;
+		
+		default:
+			break;
 	}
 }
 

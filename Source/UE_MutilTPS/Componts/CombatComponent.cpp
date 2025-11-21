@@ -60,7 +60,6 @@ void UCombatComponent::EquipWeapon(AWeaponBase* Weapon)
 	USkeletalMeshSocket const * RightHandSocket = this->PlayerCharacter->GetMesh()->GetSocketByName(FName("RightHandSocket"));
 	RightHandSocket->AttachActor(EquippedWeapon, this->PlayerCharacter->GetMesh());
 	EquippedWeapon->SetOwner(PlayerCharacter);
-	EquippedWeapon->ShowPickUpWidget(false);
 }
 
 

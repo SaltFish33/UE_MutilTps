@@ -188,10 +188,22 @@ void APlayerCharacter::StopJump()
 // - 参数：无（使用 OverlappingWeapon 成员做目标），注意 OverlappingWeapon 由服务器通过重叠回调设置并复制到拥有者客户端。
 void APlayerCharacter::EquipWeapon()
 {
-	if (OverlappingWeapon && CombatComponent && HasAuthority())
+	if (OverlappingWeapon && CombatComponent)
 	{
-		CombatComponent->EquipWeapon(OverlappingWeapon);
+		if (HasAuthority())
+		{
+			CombatComponent->EquipWeapon(OverlappingWeapon);
+		} else
+		{
+			this->ServerPressEquipWeapon();
+		}
+		
 	}
+}
+
+void APlayerCharacter::ServerPressEquipWeapon_Implementation()
+{
+	CombatComponent->EquipWeapon(OverlappingWeapon);
 }
 
 // OnRep_OverlappingWeapon 说明：
