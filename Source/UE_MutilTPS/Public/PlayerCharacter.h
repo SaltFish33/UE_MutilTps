@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "UE_MutilTPS/Componts/CombatComponent.h"
 #include "PlayerCharacter.generated.h"
 
 class UCombatComponent;
@@ -49,6 +51,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> EquipAction;
 
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	TObjectPtr<UInputAction> CrouchAction;
+
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 	// SetOverlappingWeapon 说明：
@@ -57,6 +62,9 @@ public:
 	void SetOverlappingWeapon(AWeaponBase* Weapon);
 
 	virtual void PostInitializeComponents() override;
+
+	FORCEINLINE
+	bool IsEquipWeapon() const { return this->CombatComponent && this->CombatComponent->EquippedWeapon != nullptr; }
 	
 protected:
 	virtual void BeginPlay() override;
@@ -78,6 +86,10 @@ private:
 	// 跳跃回调（由 Enhanced Input 的 Started/Completed 调用）
 	void StartJump();
 	void StopJump();
+	// 本地拾取触发，触发后会在服务器（如果 HasAuthority）执行装备逻辑
+	void EquipWeapon();
+	void PressCrouch();
+	
 
 	// 头顶 Widget（通常用于显示玩家名字/状态）
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
@@ -99,7 +111,4 @@ private:
 	// 战斗组件，用于管理装备逻辑
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	TObjectPtr<UCombatComponent> CombatComponent;
-	
-	// 本地拾取触发，触发后会在服务器（如果 HasAuthority）执行装备逻辑
-	void EquipWeapon();
 };

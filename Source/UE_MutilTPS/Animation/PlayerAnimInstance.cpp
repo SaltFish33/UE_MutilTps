@@ -60,5 +60,9 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	
 	// 是否正在运行 / 有输入：通过当前加速度来判断（加速度为 0 时通常表示没有输入推动）
 	bIsRunning = MoveComp->GetCurrentAcceleration().Size() > 0.f;
+
+	bIsEquipWeapon = PlayerCharacter->IsEquipWeapon();
+
+	bIsCrouch = PlayerCharacter->bIsCrouched;
 }
 

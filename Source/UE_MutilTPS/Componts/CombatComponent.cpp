@@ -16,6 +16,12 @@ UCombatComponent::UCombatComponent()
 
 }
 
+void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
+}
+
 
 void UCombatComponent::BeginPlay()
 {
@@ -57,9 +63,12 @@ void UCombatComponent::EquipWeapon(AWeaponBase* Weapon)
 	}
 	this->EquippedWeapon = Weapon;
 	this->EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-	USkeletalMeshSocket const * RightHandSocket = this->PlayerCharacter->GetMesh()->GetSocketByName(FName("RightHandSocket"));
-	RightHandSocket->AttachActor(EquippedWeapon, this->PlayerCharacter->GetMesh());
-	EquippedWeapon->SetOwner(PlayerCharacter);
+	const USkeletalMeshSocket* RightHandSocket = this->PlayerCharacter->GetMesh()->GetSocketByName(FName("RightHandSocket"));
+	if (RightHandSocket)
+	{
+		RightHandSocket->AttachActor(EquippedWeapon, this->PlayerCharacter->GetMesh());
+	}
+	this->EquippedWeapon->SetOwner(PlayerCharacter);
 }
 
 

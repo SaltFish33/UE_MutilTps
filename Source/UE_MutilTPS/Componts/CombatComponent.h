@@ -16,6 +16,7 @@ class UE_MUTILTPS_API UCombatComponent : public UActorComponent
 
 public:	
 	UCombatComponent();
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	friend class APlayerCharacter;
 
@@ -25,6 +26,7 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	UPROPERTY(Replicated)
 	TObjectPtr<AWeaponBase> EquippedWeapon;
 	TObjectPtr<APlayerCharacter> PlayerCharacter;
 };

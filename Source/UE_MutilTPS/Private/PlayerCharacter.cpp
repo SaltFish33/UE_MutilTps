@@ -46,6 +46,8 @@ APlayerCharacter::APlayerCharacter()
 
 	this->CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	this->CombatComponent->SetIsReplicated(true);
+
+	this->GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 }
 
 void APlayerCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -133,21 +135,30 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		{
 			EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Triggered, this, &APlayerCharacter::EquipWeapon);
 		}
+		if (CrouchAction)
+		{
+			EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &APlayerCharacter::PressCrouch);
+		}
 	}
 
 }
 
 void APlayerCharacter::InitInputMapping()
 {
-	ULocalPlayer* Player = (GEngine && GetWorld()) ? GEngine->GetFirstGamePlayer(GetWorld()) : nullptr;
-	if (Player && InputMappingContext)
+	// 仅在本地控制的客户端执行
+	if (!IsLocallyControlled() || !InputMappingContext) return;
+
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (!PC) return;
+
+	ULocalPlayer* LocalPlayer = PC->GetLocalPlayer();
+	if (!LocalPlayer) return;
+
+	UEnhancedInputLocalPlayerSubsystem* Subsystem =
+		LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
+	if (Subsystem)
 	{
-		UEnhancedInputLocalPlayerSubsystem* Subsystem = 
-			Player->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
-		if (Subsystem)
-		{
-			Subsystem->AddMappingContext(InputMappingContext, 0);
-		}
+		Subsystem->AddMappingContext(InputMappingContext, 0);
 	}
 }
 
@@ -198,6 +209,17 @@ void APlayerCharacter::EquipWeapon()
 			this->ServerPressEquipWeapon();
 		}
 		
+	}
+}
+
+void APlayerCharacter::PressCrouch()
+{
+	if (bIsCrouched)
+	{
+		UnCrouch();
+	} else
+	{
+		Crouch();
 	}
 }
 
