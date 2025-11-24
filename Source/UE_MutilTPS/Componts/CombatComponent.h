@@ -22,6 +22,12 @@ public:
 
 	UFUNCTION()
 	void EquipWeapon(AWeaponBase* Weapon);
+
+	UFUNCTION()
+	void SetAiming(bool IsAiming);
+
+	UFUNCTION(Server, Reliable)
+	void ServerSetAiming(bool IsAiming);
 protected:
 	virtual void BeginPlay() override;
 
@@ -29,4 +35,6 @@ private:
 	UPROPERTY(Replicated)
 	TObjectPtr<AWeaponBase> EquippedWeapon;
 	TObjectPtr<APlayerCharacter> PlayerCharacter;
+	UPROPERTY(Replicated)
+	bool bIsAiming;
 };

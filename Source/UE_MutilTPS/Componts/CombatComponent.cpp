@@ -20,6 +20,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
+	DOREPLIFETIME(UCombatComponent, bIsAiming);
 }
 
 
@@ -69,6 +70,20 @@ void UCombatComponent::EquipWeapon(AWeaponBase* Weapon)
 		RightHandSocket->AttachActor(EquippedWeapon, this->PlayerCharacter->GetMesh());
 	}
 	this->EquippedWeapon->SetOwner(PlayerCharacter);
+}
+
+void UCombatComponent::SetAiming(bool IsAiming)
+{
+	this->bIsAiming = IsAiming;
+	if (!PlayerCharacter->HasAuthority())
+	{
+		this->ServerSetAiming(IsAiming);
+	}
+}
+
+void UCombatComponent::ServerSetAiming_Implementation(bool IsAiming)
+{
+	this->bIsAiming = IsAiming;
 }
 
 

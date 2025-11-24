@@ -54,6 +54,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> CrouchAction;
 
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	TObjectPtr<UInputAction> AimingAction;
+
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 	// SetOverlappingWeapon 说明：
@@ -65,6 +68,9 @@ public:
 
 	FORCEINLINE
 	bool IsEquipWeapon() const { return this->CombatComponent && this->CombatComponent->EquippedWeapon != nullptr; }
+
+	FORCEINLINE
+	bool IsAiming() const { return this->CombatComponent && this->CombatComponent->bIsAiming; }
 	
 protected:
 	virtual void BeginPlay() override;
@@ -89,6 +95,8 @@ private:
 	// 本地拾取触发，触发后会在服务器（如果 HasAuthority）执行装备逻辑
 	void EquipWeapon();
 	void PressCrouch();
+	void PressAiming();
+	void ReleaseAiming();
 	
 
 	// 头顶 Widget（通常用于显示玩家名字/状态）
