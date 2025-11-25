@@ -7,6 +7,7 @@
 
 #include "PlayerCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 
 void UPlayerAnimInstance::NativeInitializeAnimation()
@@ -66,5 +67,25 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsCrouch = PlayerCharacter->bIsCrouched;
 
 	bIsAiming = PlayerCharacter->IsAiming();
+
+	// 计算动画的旋转值，和实际要转向的旋转值的差值
+	FRotator AimRotation = PlayerCharacter->GetBaseAimRotation();
+	FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(MoveComp->Velocity);
+	// 差值就是在指定时间内需要旋转多少
+	FRotator DeltaRot = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, AimRotation);
+	// 再去计算在DeltaSecond内，需要插值多少来旋转，速度越小，越精确
+	DeltaRotation = FMath::RInterpTo(DeltaRotation, DeltaRot, DeltaSeconds, 6.f);
+	YawOffset = DeltaRotation.Yaw;
+
+	// Lean是计算单位时间内的旋转速率，根据旋转速率来调整倾斜角度
+	// 旋转速率就是通过当前帧和上一真旋转的差值来计算
+	PlayerRotationLastFrame = PlayerRotation;
+	PlayerRotation = PlayerCharacter->GetActorRotation();
+	FRotator DeltaRealRotation = UKismetMathLibrary::NormalizedDeltaRotator(PlayerRotation, PlayerRotationLastFrame);
+	// 差值除以时间等于速度
+	float RotateSpeed = DeltaRealRotation.Yaw / DeltaSeconds;
+	// 把当前的速率插值到目标速率
+	float InterpRotateSpeed = FMath::FInterpTo(Lean, RotateSpeed, DeltaSeconds, 6.f);
+	Lean = FMath::Clamp(InterpRotateSpeed, -90.f, 90.f);
 }
 

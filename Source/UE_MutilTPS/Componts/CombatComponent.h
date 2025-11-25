@@ -31,10 +31,16 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+	void OnRep_EquippedWeapon();
+
 private:
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing=OnRep_EquippedWeapon)
 	TObjectPtr<AWeaponBase> EquippedWeapon;
+	
 	TObjectPtr<APlayerCharacter> PlayerCharacter;
 	UPROPERTY(Replicated)
 	bool bIsAiming;
+
+	
 };

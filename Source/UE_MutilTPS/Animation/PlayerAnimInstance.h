@@ -49,5 +49,15 @@ protected:
 	
 	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	bool bIsAiming = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	float YawOffset = 0.f;
+
+	FRotator DeltaRotation;
+	FRotator PlayerRotationLastFrame;
+	FRotator PlayerRotation;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	float Lean = 0.f;
 };
 
