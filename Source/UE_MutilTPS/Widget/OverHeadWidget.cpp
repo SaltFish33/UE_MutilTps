@@ -21,7 +21,7 @@ void UOverHeadWidget::SetDisplayText(const FString& Text)
 void UOverHeadWidget::ShowPlayerNetRole(APawn* Player)
 {
 	// 获取本地角色（LocalRole）：在服务器上通常为 ROLE_Authority，在客户端为 Autonomous/Simulated 等
-	ENetRole PlayerRole = Player ? Player->GetLocalRole() : ROLE_None;
+	ENetRole PlayerRole = Player != nullptr ? Player->GetLocalRole() : ROLE_None;
 	FString RoleText;
 	switch (PlayerRole)
 	{

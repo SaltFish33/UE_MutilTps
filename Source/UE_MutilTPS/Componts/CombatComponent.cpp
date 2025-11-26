@@ -79,11 +79,9 @@ void UCombatComponent::EquipWeapon(AWeaponBase* Weapon)
 		RightHandSocket->AttachActor(EquippedWeapon, this->PlayerCharacter->GetMesh());
 	}
 	this->EquippedWeapon->SetOwner(PlayerCharacter);
-	if (PlayerCharacter->IsLocallyControlled())
-	{
-		PlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
-		PlayerCharacter->bUseControllerRotationYaw = true;
-	}
+	PlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
+	PlayerCharacter->bUseControllerRotationYaw = true;
+	
 }
 
 void UCombatComponent::SetAiming(bool IsAiming)
