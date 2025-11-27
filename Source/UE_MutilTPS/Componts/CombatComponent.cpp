@@ -14,6 +14,8 @@ UCombatComponent::UCombatComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
+	NormalMaxWalkSpeed = 600.f;
+	AimingMaxWalkSpeed = 450.f;
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -27,6 +29,10 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty
 void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	if (PlayerCharacter)
+	{
+		PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = NormalMaxWalkSpeed;
+	}
 	
 }
 
@@ -91,11 +97,19 @@ void UCombatComponent::SetAiming(bool IsAiming)
 	{
 		this->ServerSetAiming(IsAiming);
 	}
+	if (PlayerCharacter)
+	{
+		PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = this->bIsAiming ? AimingMaxWalkSpeed : NormalMaxWalkSpeed;
+	}
 }
 
 void UCombatComponent::ServerSetAiming_Implementation(bool IsAiming)
 {
 	this->bIsAiming = IsAiming;
+	if (PlayerCharacter)
+	{
+		PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = this->bIsAiming ? AimingMaxWalkSpeed : NormalMaxWalkSpeed;
+	}
 }
 
 

@@ -42,5 +42,10 @@ private:
 	UPROPERTY(Replicated)
 	bool bIsAiming;
 
+	UPROPERTY(EditDefaultsOnly)
+	float NormalMaxWalkSpeed;
+
+	UPROPERTY(EditDefaultsOnly)
+	float AimingMaxWalkSpeed;
 	
 };

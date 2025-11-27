@@ -14,6 +14,7 @@
 #include "Engine/LocalPlayer.h"
 #include "EnhancedInputComponent.h"
 #include "InputActionValue.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -48,6 +49,7 @@ APlayerCharacter::APlayerCharacter()
 	this->CombatComponent->SetIsReplicated(true);
 
 	this->GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+	this->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 }
 
 void APlayerCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
