@@ -20,6 +20,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "UE_MutilTPS/Componts/CombatComponent.h"
+#include "UE_MutilTPS/PlayerCharacter/TurningInPlace.h"
 #include "UE_MutilTPS/Weapon/WeaponBase.h"
 
 // Constructor 注释：创建并初始化摄像机、摄像杆、Widget、CombatComponent 等组件。
@@ -51,6 +52,7 @@ APlayerCharacter::APlayerCharacter()
 
 	this->GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 	this->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	this->TurningInPlaceType = ETurningInPlace::ETP_InPlace;
 }
 
 void APlayerCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -266,15 +268,34 @@ void APlayerCharacter::SetAimOffset(float DeltaTime)
 	{
 		FRotator AimRotation = this->GetBaseAimRotation();
 		float TargetAOYaw = UKismetMathLibrary::NormalizedDeltaRotator(AimRotation, this->GetActorRotation()).Yaw;
-		TargetAOYaw = FMath::Clamp(TargetAOYaw, -90.f, 90.f);
-		AO_Yaw = FMath::FInterpTo(AO_Yaw, TargetAOYaw, DeltaTime, 6.f);
-
+		// TargetAOYaw = FMath::Clamp(TargetAOYaw, -90.f, 90.f);
+		// AO_Yaw = FMath::FInterpTo(AO_Yaw, TargetAOYaw, DeltaTime, 6.f);
+		AO_Yaw = TargetAOYaw;
+		SetTurningInPlace(DeltaTime);
 		this->bUseControllerRotationYaw = false;
 		this->GetCharacterMovement()->bOrientRotationToMovement = true;
 	}
 
 	AO_Pitch = this->GetBaseAimRotation().Pitch;
+	if (AO_Pitch > 90.f && !IsLocallyControlled())
+	{
+		FVector2D InRange(270.f, 360.f);
+		FVector2D OutRange(-90.f, 0.f);
+		AO_Pitch = UKismetMathLibrary::MapRangeClamped(AO_Pitch, InRange.X, InRange.Y, OutRange.X, OutRange.Y);
+	}
 	
+}
+
+void APlayerCharacter::SetTurningInPlace(float DeltaTime)
+{
+	if (AO_Yaw > 90.f)
+	{
+		this->TurningInPlaceType = ETurningInPlace::ETP_TurnRight;
+	}
+	else if (AO_Yaw < -90.f)
+	{
+		this->TurningInPlaceType = ETurningInPlace::ETP_TurnLeft;
+	}
 }
 
 void APlayerCharacter::ServerPressEquipWeapon_Implementation()

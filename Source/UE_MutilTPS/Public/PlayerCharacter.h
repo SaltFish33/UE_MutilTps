@@ -8,6 +8,7 @@
 #include "UE_MutilTPS/Componts/CombatComponent.h"
 #include "PlayerCharacter.generated.h"
 
+enum class ETurningInPlace : uint8;
 class UCombatComponent;
 class AWeaponBase;
 class UWidgetComponent;
@@ -77,6 +78,12 @@ public:
 
 	FORCEINLINE
 	float GetAO_Pitch() const { return AO_Pitch; }
+
+	FORCEINLINE
+	TObjectPtr<AWeaponBase> GetEquippedWeapon() const { return this->CombatComponent ? this->CombatComponent->EquippedWeapon : nullptr; }
+
+	FORCEINLINE
+	ETurningInPlace GetTurningInPlaceType() const { return TurningInPlaceType; }
 	
 protected:
 	virtual void BeginPlay() override;
@@ -104,6 +111,7 @@ private:
 	void PressAiming();
 	void ReleaseAiming();
 	void SetAimOffset(float DeltaTime);
+	void SetTurningInPlace(float DeltaTime);
 	
 
 	// 头顶 Widget（通常用于显示玩家名字/状态）
@@ -130,4 +138,5 @@ private:
 	float AO_Yaw;
 	float AO_Pitch;
 	FRotator LastFrameRotation;
+	ETurningInPlace TurningInPlaceType;
 };

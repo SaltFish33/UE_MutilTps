@@ -9,6 +9,7 @@
 #include "Animation/AnimInstance.h"
 #include "PlayerAnimInstance.generated.h"
 
+enum class ETurningInPlace : uint8;
 class APlayerCharacter;
 /**
  * 
@@ -61,6 +62,12 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	float AO_Pitch = 0.f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	FTransform LeftHandTransform;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	ETurningInPlace TurningInPlace;
 	
 	FRotator DeltaRotation;
 	FRotator PlayerRotationLastFrame;

@@ -41,6 +41,9 @@ public:
 	void SetWeaponState(EWeaponState State);
 
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
+	FORCEINLINE
+	TObjectPtr<UStaticMeshComponent> GetWeaponMesh() const { return WeaponMesh; }
 	
 protected:
 	virtual void BeginPlay() override;
