@@ -71,6 +71,12 @@ public:
 
 	FORCEINLINE
 	bool IsAiming() const { return this->CombatComponent && this->CombatComponent->bIsAiming; }
+
+	FORCEINLINE
+	float GetAO_Yaw() const { return AO_Yaw; }
+
+	FORCEINLINE
+	float GetAO_Pitch() const { return AO_Pitch; }
 	
 protected:
 	virtual void BeginPlay() override;
@@ -97,6 +103,7 @@ private:
 	void PressCrouch();
 	void PressAiming();
 	void ReleaseAiming();
+	void SetAimOffset(float DeltaTime);
 	
 
 	// 头顶 Widget（通常用于显示玩家名字/状态）
@@ -119,4 +126,8 @@ private:
 	// 战斗组件，用于管理装备逻辑
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess=true))
 	TObjectPtr<UCombatComponent> CombatComponent;
+
+	float AO_Yaw;
+	float AO_Pitch;
+	FRotator LastFrameRotation;
 };

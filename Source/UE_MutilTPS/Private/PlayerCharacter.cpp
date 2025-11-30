@@ -17,6 +17,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "UE_MutilTPS/Componts/CombatComponent.h"
 #include "UE_MutilTPS/Weapon/WeaponBase.h"
@@ -106,6 +107,7 @@ void APlayerCharacter::BeginPlay()
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	this->SetAimOffset(DeltaTime);
 }
 
 // Input 绑定说明（SetupPlayerInputComponent / InitInputMapping）：
@@ -246,6 +248,35 @@ void APlayerCharacter::ReleaseAiming()
 	}
 }
 
+void APlayerCharacter::SetAimOffset(float DeltaTime)
+{
+	FVector Velocity = this->GetVelocity();
+	FVector Lateral = FVector(Velocity.X, Velocity.Y, 0.f);
+	float Speed = Lateral.Size();
+	bool IsInAir = this->GetCharacterMovement()->IsFalling();
+	
+	if (Speed != 0.f || IsInAir)
+	{
+		AO_Yaw = 0.f;
+		this->LastFrameRotation = this->GetActorRotation();
+		this->bUseControllerRotationYaw = true;
+		this->GetCharacterMovement()->bOrientRotationToMovement = false;
+	}
+	else 
+	{
+		FRotator AimRotation = this->GetBaseAimRotation();
+		float TargetAOYaw = UKismetMathLibrary::NormalizedDeltaRotator(AimRotation, this->GetActorRotation()).Yaw;
+		TargetAOYaw = FMath::Clamp(TargetAOYaw, -90.f, 90.f);
+		AO_Yaw = FMath::FInterpTo(AO_Yaw, TargetAOYaw, DeltaTime, 6.f);
+
+		this->bUseControllerRotationYaw = false;
+		this->GetCharacterMovement()->bOrientRotationToMovement = true;
+	}
+
+	AO_Pitch = this->GetBaseAimRotation().Pitch;
+	
+}
+
 void APlayerCharacter::ServerPressEquipWeapon_Implementation()
 {
 	CombatComponent->EquipWeapon(OverlappingWeapon);
@@ -271,4 +302,3 @@ void APlayerCharacter::StartJump()
 {
     Jump();
 }
-

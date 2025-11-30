@@ -53,11 +53,17 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	float YawOffset = 0.f;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	float Lean = 0.f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	float AO_Yaw = 0.f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	float AO_Pitch = 0.f;
+	
 	FRotator DeltaRotation;
 	FRotator PlayerRotationLastFrame;
 	FRotator PlayerRotation;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
-	float Lean = 0.f;
 };
 

@@ -68,7 +68,7 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	bIsAiming = PlayerCharacter->IsAiming();
 
-	// 计算动画的旋转值，和实际要转向的旋转值的差值
+	// 计算Controller的旋转值，和实际要转向的旋转值的差值
 	FRotator AimRotation = PlayerCharacter->GetBaseAimRotation();
 	FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(MoveComp->Velocity);
 	// 差值就是在指定时间内需要旋转多少
@@ -87,5 +87,8 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	// 把当前的速率插值到目标速率
 	float InterpRotateSpeed = FMath::FInterpTo(Lean, RotateSpeed, DeltaSeconds, 6.f);
 	Lean = FMath::Clamp(InterpRotateSpeed, -90.f, 90.f);
+
+	AO_Yaw = PlayerCharacter->GetAO_Yaw();
+	AO_Pitch = PlayerCharacter->GetAO_Pitch();
 }
 
