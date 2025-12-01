@@ -136,6 +136,7 @@ private:
 	TObjectPtr<UCombatComponent> CombatComponent;
 
 	float AO_Yaw;
+	float InterpAO_Yaw;
 	float AO_Pitch;
 	FRotator LastFrameRotation;
 	ETurningInPlace TurningInPlaceType;

@@ -53,6 +53,9 @@ APlayerCharacter::APlayerCharacter()
 	this->GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 	this->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	this->TurningInPlaceType = ETurningInPlace::ETP_InPlace;
+
+	SetNetUpdateFrequency(66.f);
+	SetMinNetUpdateFrequency(33.f);
 }
 
 void APlayerCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -260,17 +263,22 @@ void APlayerCharacter::SetAimOffset(float DeltaTime)
 	if (Speed != 0.f || IsInAir)
 	{
 		AO_Yaw = 0.f;
-		this->LastFrameRotation = this->GetActorRotation();
+		this->LastFrameRotation = FRotator(0.f, this->GetBaseAimRotation().Yaw, 0.f);
 		this->bUseControllerRotationYaw = true;
-		this->GetCharacterMovement()->bOrientRotationToMovement = false;
+		//this->GetCharacterMovement()->bOrientRotationToMovement = false;
+		this->TurningInPlaceType = ETurningInPlace::ETP_InPlace;
 	}
 	else 
 	{
-		FRotator AimRotation = this->GetBaseAimRotation();
-		float TargetAOYaw = UKismetMathLibrary::NormalizedDeltaRotator(AimRotation, this->GetActorRotation()).Yaw;
+		FRotator AimRotation = FRotator(0.f, this->GetBaseAimRotation().Yaw, 0.f);
+		float TargetAOYaw = UKismetMathLibrary::NormalizedDeltaRotator(AimRotation, this->LastFrameRotation).Yaw;
 		// TargetAOYaw = FMath::Clamp(TargetAOYaw, -90.f, 90.f);
 		// AO_Yaw = FMath::FInterpTo(AO_Yaw, TargetAOYaw, DeltaTime, 6.f);
 		AO_Yaw = TargetAOYaw;
+		if (TurningInPlaceType == ETurningInPlace::ETP_InPlace)
+		{
+			InterpAO_Yaw = AO_Yaw;
+		}
 		SetTurningInPlace(DeltaTime);
 		this->bUseControllerRotationYaw = false;
 		this->GetCharacterMovement()->bOrientRotationToMovement = true;
@@ -295,6 +303,16 @@ void APlayerCharacter::SetTurningInPlace(float DeltaTime)
 	else if (AO_Yaw < -90.f)
 	{
 		this->TurningInPlaceType = ETurningInPlace::ETP_TurnLeft;
+	}
+	if (this->TurningInPlaceType != ETurningInPlace::ETP_InPlace)
+	{
+		InterpAO_Yaw = FMath::FInterpTo(InterpAO_Yaw, 0.f, DeltaTime, 6.f);
+		AO_Yaw = InterpAO_Yaw;
+		if (FMath::Abs(AO_Yaw) < 15.f)
+		{
+			this->TurningInPlaceType = ETurningInPlace::ETP_InPlace;
+			this->LastFrameRotation = FRotator(0.f, this->GetBaseAimRotation().Yaw, 0.f);
+		}
 	}
 }
 
