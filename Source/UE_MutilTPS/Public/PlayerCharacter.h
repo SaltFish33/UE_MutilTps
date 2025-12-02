@@ -112,6 +112,7 @@ private:
 	void ReleaseAiming();
 	void SetAimOffset(float DeltaTime);
 	void SetTurningInPlace(float DeltaTime);
+	void RotateCharacterForTurning(float DeltaTime);
 	
 
 	// 头顶 Widget（通常用于显示玩家名字/状态）
@@ -140,4 +141,19 @@ private:
 	float AO_Pitch;
 	FRotator LastFrameRotation;
 	ETurningInPlace TurningInPlaceType;
+	
+	// 代码驱动旋转相关参数
+	// 当AO超过此角度时，通过代码驱动旋转而不是RotateRootBone
+	UPROPERTY(EditAnywhere, Category="Turning", meta=(ClampMin="0.0", ClampMax="180.0"))
+	float TurningThresholdAngle = 90.0f;
+	
+	// 角色旋转速度（度/秒）
+	UPROPERTY(EditAnywhere, Category="Turning", meta=(ClampMin="0.0"))
+	float CharacterRotationSpeed = 360.0f;
+	
+	// 当前需要旋转的目标角度（相对于当前朝向）
+	float TargetRotationDelta = 0.0f;
+	
+	// 是否正在通过代码旋转
+	bool bIsRotatingCharacter = false;
 };
