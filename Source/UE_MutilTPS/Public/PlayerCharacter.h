@@ -145,7 +145,7 @@ private:
 	// 代码驱动旋转相关参数
 	// 当AO超过此角度时，通过代码驱动旋转而不是RotateRootBone
 	UPROPERTY(EditAnywhere, Category="Turning", meta=(ClampMin="0.0", ClampMax="180.0"))
-	float TurningThresholdAngle = 90.0f;
+	float TurningThresholdAngle = 120.0f;
 	
 	// 角色旋转速度（度/秒）
 	UPROPERTY(EditAnywhere, Category="Turning", meta=(ClampMin="0.0"))

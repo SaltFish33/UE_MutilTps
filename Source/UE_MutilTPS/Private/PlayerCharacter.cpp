@@ -291,21 +291,15 @@ void APlayerCharacter::SetAimOffset(float DeltaTime)
 	// 3. 空中时也不适合进行原地转向，因为角色可能处于不稳定状态
 	if (Speed != 0.f || IsInAir)
 	{
-		// 关键保护：如果正在通过代码旋转，不要中断旋转过程
-		// 这确保了旋转的连续性，即使角色突然开始移动，也能完成当前的旋转
-		// 例如：角色正在旋转时，玩家突然按下移动键，旋转应该继续完成
-		if (!bIsRotatingCharacter)
-		{
-			// 重置 AO_Yaw 相关状态
-			AO_Yaw = 0.f;
-			// 更新 LastFrameRotation 为当前瞄准方向，为下一帧计算做准备
-			this->LastFrameRotation = FRotator(0.f, this->GetBaseAimRotation().Yaw, 0.f);
-			// 移动时允许控制器控制角色旋转
-			this->bUseControllerRotationYaw = true;
-			// 禁用自动朝向移动方向，让控制器控制旋转
-			this->GetCharacterMovement()->bOrientRotationToMovement = false;
-			this->TurningInPlaceType = ETurningInPlace::ETP_InPlace;
-		}
+		// 重置 AO_Yaw 相关状态
+		AO_Yaw = 0.f;
+		// 更新 LastFrameRotation 为当前瞄准方向，为下一帧计算做准备
+		this->LastFrameRotation = FRotator(0.f, this->GetBaseAimRotation().Yaw, 0.f);
+		// 移动时允许控制器控制角色旋转
+		this->bUseControllerRotationYaw = true;
+		// 禁用自动朝向移动方向，让控制器控制旋转
+		this->GetCharacterMovement()->bOrientRotationToMovement = false;
+		this->TurningInPlaceType = ETurningInPlace::ETP_InPlace;
 	}
 	// ========== 情况2：角色静止在地面上 ==========
 	// 这是进行原地转向检测和代码驱动旋转的主要场景
