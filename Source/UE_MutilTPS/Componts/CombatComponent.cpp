@@ -8,6 +8,7 @@
 
 #include "PlayerCharacter.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "UE_MutilTPS/Animation/PlayerAnimInstance.h"
 #include "UE_MutilTPS/Weapon/WeaponBase.h"
 
 UCombatComponent::UCombatComponent()
@@ -16,6 +17,7 @@ UCombatComponent::UCombatComponent()
 
 	NormalMaxWalkSpeed = 600.f;
 	AimingMaxWalkSpeed = 450.f;
+	bIsFiring = false;
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -109,6 +111,17 @@ void UCombatComponent::ServerSetAiming_Implementation(bool IsAiming)
 	if (PlayerCharacter)
 	{
 		PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = this->bIsAiming ? AimingMaxWalkSpeed : NormalMaxWalkSpeed;
+	}
+}
+
+void UCombatComponent::FireButtonPressed(bool bIsPressed)
+{
+	this->bIsFiring = bIsPressed;
+	if (PlayerCharacter && this->EquippedWeapon && this->EquippedWeapon->FireMontage && bIsPressed && PlayerAnimInstance)
+	{
+		PlayerAnimInstance->Montage_Play(this->EquippedWeapon->FireMontage);
+		FName FireSection = this->bIsAiming ? FName("Rifle_Iron") : FName("Rifle_Hip");
+		PlayerAnimInstance->Montage_JumpToSection(FireSection);
 	}
 }
 

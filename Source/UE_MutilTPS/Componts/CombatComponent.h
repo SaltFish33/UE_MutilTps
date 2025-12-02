@@ -7,6 +7,7 @@
 #include "CombatComponent.generated.h"
 
 
+class UPlayerAnimInstance;
 class AWeaponBase;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -34,6 +35,9 @@ protected:
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
 
+	UFUNCTION()
+	void FireButtonPressed(bool bIsPressed);
+
 private:
 	UPROPERTY(ReplicatedUsing=OnRep_EquippedWeapon)
 	TObjectPtr<AWeaponBase> EquippedWeapon;
@@ -47,5 +51,10 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	float AimingMaxWalkSpeed;
+
+	UPROPERTY(Replicated)
+	bool bIsFiring;
+
+	TObjectPtr<UPlayerAnimInstance> PlayerAnimInstance;
 	
 };

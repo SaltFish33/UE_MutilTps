@@ -19,6 +19,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
+#include "UE_MutilTPS/Animation/PlayerAnimInstance.h"
 #include "UE_MutilTPS/Componts/CombatComponent.h"
 #include "UE_MutilTPS/PlayerCharacter/TurningInPlace.h"
 #include "UE_MutilTPS/Weapon/WeaponBase.h"
@@ -104,6 +105,7 @@ void APlayerCharacter::PostInitializeComponents()
 	if (this->CombatComponent)
 	{
 		this->CombatComponent->PlayerCharacter = this;
+		this->CombatComponent->PlayerAnimInstance = Cast<UPlayerAnimInstance>(this->GetMesh()->GetAnimInstance());
 	}
 }
 
@@ -156,6 +158,11 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		{
 			EnhancedInputComponent->BindAction(AimingAction, ETriggerEvent::Started, this, &APlayerCharacter::PressAiming);
 			EnhancedInputComponent->BindAction(AimingAction, ETriggerEvent::Completed, this, &APlayerCharacter::ReleaseAiming);
+		}
+		if (FireAction)
+		{
+			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &APlayerCharacter::PressFire);
+			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &APlayerCharacter::ReleaseFire);
 		}
 	}
 
@@ -254,6 +261,22 @@ void APlayerCharacter::ReleaseAiming()
 	if (this->CombatComponent)
 	{
 		this->CombatComponent->SetAiming(false);
+	}
+}
+
+void APlayerCharacter::PressFire()
+{
+	if (this->CombatComponent)
+	{
+		this->CombatComponent->FireButtonPressed(true);
+	}
+}
+
+void APlayerCharacter::ReleaseFire()
+{
+	if (this->CombatComponent)
+	{
+		this->CombatComponent->FireButtonPressed(false);
 	}
 }
 

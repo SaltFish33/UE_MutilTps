@@ -58,6 +58,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> AimingAction;
 
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	TObjectPtr<UInputAction> FireAction;
+
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 	// SetOverlappingWeapon 说明：
@@ -113,6 +116,8 @@ private:
 	void SetAimOffset(float DeltaTime);
 	void SetTurningInPlace(float DeltaTime);
 	void RotateCharacterForTurning(float DeltaTime);
+	void PressFire();
+	void ReleaseFire();
 	
 
 	// 头顶 Widget（通常用于显示玩家名字/状态）

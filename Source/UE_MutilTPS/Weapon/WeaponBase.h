@@ -44,6 +44,9 @@ public:
 
 	FORCEINLINE
 	TObjectPtr<UStaticMeshComponent> GetWeaponMesh() const { return WeaponMesh; }
+
+	UPROPERTY(EditDefaultsOnly, Category="Weapon Properties")
+	TObjectPtr<UAnimMontage> FireMontage;
 	
 protected:
 	virtual void BeginPlay() override;
