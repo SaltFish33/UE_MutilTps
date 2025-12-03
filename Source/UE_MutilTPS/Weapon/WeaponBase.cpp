@@ -103,6 +103,11 @@ void AWeaponBase::OnSphereEndOverLap(UPrimitiveComponent* OverlappedComponent, A
 	}
 }
 
+void AWeaponBase::Fire()
+{
+	
+}
+
 void AWeaponBase::OnRep_WeaponState()
 {
 	this->SetWeaponState(this->WeaponState);

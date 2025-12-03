@@ -38,6 +38,12 @@ protected:
 	UFUNCTION()
 	void FireButtonPressed(bool bIsPressed);
 
+	UFUNCTION(Server, Reliable)
+	void ServerFireButtonPressed();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastFire();
+
 private:
 	UPROPERTY(ReplicatedUsing=OnRep_EquippedWeapon)
 	TObjectPtr<AWeaponBase> EquippedWeapon;
@@ -56,5 +62,7 @@ private:
 	bool bIsFiring;
 
 	TObjectPtr<UPlayerAnimInstance> PlayerAnimInstance;
+
+	void TickGetTraceHitRaycast(FHitResult& OutHitResult);
 	
 };

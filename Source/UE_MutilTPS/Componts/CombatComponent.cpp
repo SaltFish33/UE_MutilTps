@@ -8,12 +8,15 @@
 
 #include "PlayerCharacter.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "Kismet/GameplayStatics.h"
 #include "UE_MutilTPS/Animation/PlayerAnimInstance.h"
 #include "UE_MutilTPS/Weapon/WeaponBase.h"
 
+#define TRACE_LENGTH 8000.f
+
 UCombatComponent::UCombatComponent()
 {
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
 
 	NormalMaxWalkSpeed = 600.f;
 	AimingMaxWalkSpeed = 450.f;
@@ -50,8 +53,11 @@ void UCombatComponent::OnRep_EquippedWeapon()
 
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
+	UE_LOG(LogTemp, Warning, TEXT("HitResult:"));
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
+	/* FHitResult HitResult;
+	this->TickGetTraceHitRaycast(HitResult); */
+	
 }
 
 // EquipWeapon 说明：
@@ -117,12 +123,55 @@ void UCombatComponent::ServerSetAiming_Implementation(bool IsAiming)
 void UCombatComponent::FireButtonPressed(bool bIsPressed)
 {
 	this->bIsFiring = bIsPressed;
-	if (PlayerCharacter && this->EquippedWeapon && this->EquippedWeapon->FireMontage && bIsPressed && PlayerAnimInstance)
-	{
-		PlayerAnimInstance->Montage_Play(this->EquippedWeapon->FireMontage);
-		FName FireSection = this->bIsAiming ? FName("Rifle_Iron") : FName("Rifle_Hip");
-		PlayerAnimInstance->Montage_JumpToSection(FireSection);
-	}
+	this->ServerFireButtonPressed();
 }
 
+void UCombatComponent::TickGetTraceHitRaycast(FHitResult& OutHitResult)
+{
+	FVector2D ViewCenterPos;
+	FVector2D ViewportSize;
+	if (GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->GetViewportSize(ViewportSize);
+	}
+	ViewCenterPos.X = (ViewportSize.X / 2.f);
+	ViewCenterPos.Y = (ViewportSize.Y / 2.f);
+	FVector WorldPosition;
+	FVector WorldDirection;
+	bool bSceneToWorld = UGameplayStatics::DeprojectScreenToWorld(UGameplayStatics::GetPlayerController(GetWorld(), 0), ViewCenterPos, WorldPosition, WorldDirection);
+	if (bSceneToWorld)
+	{
+		FVector Start = WorldPosition;
+		FVector End = Start + WorldDirection * TRACE_LENGTH;
+		GetWorld()->LineTraceSingleByChannel(OutHitResult, Start, End, ECC_Visibility);
+		if (!OutHitResult.bBlockingHit)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("No blocking hit"));
+			OutHitResult.ImpactPoint = End;
+		} else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Hit: %s"), *OutHitResult.GetActor()->GetName());
+			DrawDebugSphere(GetWorld(), OutHitResult.ImpactPoint, 10.f, 10, FColor::Red);
+		}
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("No hit"));
+	}
+	
+}
 
+void UCombatComponent::ServerFireButtonPressed_Implementation()
+{
+	this->MulticastFire();
+}
+
+void UCombatComponent::MulticastFire_Implementation()
+{
+	if (this->EquippedWeapon && this->EquippedWeapon->FireMontage && PlayerAnimInstance)
+	{
+		PlayerAnimInstance->Montage_Play(this->EquippedWeapon->FireMontage);
+		FName FireSection = this->bIsAiming ? FName("Rifle_Aim") : FName("Rifle_Hip");
+		PlayerAnimInstance->Montage_JumpToSection(FireSection);
+		this->EquippedWeapon->Fire();
+	}
+}

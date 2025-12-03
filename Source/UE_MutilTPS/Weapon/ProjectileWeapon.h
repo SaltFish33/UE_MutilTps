@@ -13,5 +13,7 @@ UCLASS()
 class UE_MUTILTPS_API AProjectileWeapon : public AWeaponBase
 {
 	GENERATED_BODY()
-	
+
+public:
+	virtual void Fire() override;
 };

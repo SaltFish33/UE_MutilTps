@@ -47,6 +47,8 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category="Weapon Properties")
 	TObjectPtr<UAnimMontage> FireMontage;
+
+	virtual void Fire();
 	
 protected:
 	virtual void BeginPlay() override;
@@ -80,6 +82,9 @@ private:
 	// AreaSphere：用于检测玩家进入拾取范围（Overlap），仅在服务器上启用以保证权威性
 	UPROPERTY(EditDefaultsOnly, Category="Weapon Properties")
 	TObjectPtr<USphereComponent> AreaSphere;
+
+	UPROPERTY(EditDefaultsOnly, Category="Weapon Properties")
+	TObjectPtr<UAnimationAsset> FireAnimation;
 
 	// 当前武器状态，供游戏逻辑区分行为
 	UPROPERTY(VisibleAnywhere, ReplicatedUsing=OnRep_WeaponState, Category="Weapon Properties")
