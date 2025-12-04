@@ -29,6 +29,8 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerSetAiming(bool IsAiming);
+
+	void CustomTick(float DeltaTime);
 protected:
 	virtual void BeginPlay() override;
 

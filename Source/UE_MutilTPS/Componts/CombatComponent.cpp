@@ -31,9 +31,16 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty
 }
 
 
+void UCombatComponent::CustomTick(float DeltaTime)
+{
+	FHitResult HitResult;
+	this->TickGetTraceHitRaycast(HitResult);
+}
+
 void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	this->SetComponentTickEnabled(true);
 	if (PlayerCharacter)
 	{
 		PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = NormalMaxWalkSpeed;
@@ -55,9 +62,7 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 {
 	UE_LOG(LogTemp, Warning, TEXT("HitResult:"));
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	/* FHitResult HitResult;
-	this->TickGetTraceHitRaycast(HitResult); */
-	
+
 }
 
 // EquipWeapon 说明：

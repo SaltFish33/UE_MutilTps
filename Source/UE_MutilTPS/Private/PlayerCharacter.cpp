@@ -118,7 +118,12 @@ void APlayerCharacter::BeginPlay()
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
 	this->SetAimOffset(DeltaTime);
+	if (this->CombatComponent)
+	{
+		this->CombatComponent->CustomTick(DeltaTime);
+	}
 }
 
 // Input 绑定说明（SetupPlayerInputComponent / InitInputMapping）：
