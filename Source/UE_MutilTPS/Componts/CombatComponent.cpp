@@ -177,6 +177,5 @@ void UCombatComponent::MulticastFire_Implementation()
 		PlayerAnimInstance->Montage_Play(this->EquippedWeapon->FireMontage);
 		FName FireSection = this->bIsAiming ? FName("Rifle_Aim") : FName("Rifle_Hip");
 		PlayerAnimInstance->Montage_JumpToSection(FireSection);
-		this->EquippedWeapon->Fire();
 	}
 }

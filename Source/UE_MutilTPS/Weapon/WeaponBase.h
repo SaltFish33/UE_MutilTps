@@ -48,7 +48,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category="Weapon Properties")
 	TObjectPtr<UAnimMontage> FireMontage;
 
-	virtual void Fire();
+	virtual void Fire(FVector& HitTarget);
 	
 protected:
 	virtual void BeginPlay() override;

@@ -6,6 +6,7 @@
 #include "WeaponBase.h"
 #include "ProjectileWeapon.generated.h"
 
+class AProjectile;
 /**
  * 
  */
@@ -15,5 +16,10 @@ class UE_MUTILTPS_API AProjectileWeapon : public AWeaponBase
 	GENERATED_BODY()
 
 public:
-	virtual void Fire() override;
+	virtual void Fire(FVector& HitTarget) override;
+
+private:
+	UPROPERTY(EditAnywhere, Category="Weapon|Projectile")
+	TSubclassOf<AProjectile> ProjectileClass;
+
 };
