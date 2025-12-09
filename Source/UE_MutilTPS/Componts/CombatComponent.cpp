@@ -33,8 +33,6 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty
 
 void UCombatComponent::CustomTick(float DeltaTime)
 {
-	FHitResult HitResult;
-	this->TickGetTraceHitRaycast(HitResult);
 }
 
 void UCombatComponent::BeginPlay()
@@ -151,18 +149,12 @@ void UCombatComponent::TickGetTraceHitRaycast(FHitResult& OutHitResult)
 		GetWorld()->LineTraceSingleByChannel(OutHitResult, Start, End, ECC_Visibility);
 		if (!OutHitResult.bBlockingHit)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("No blocking hit"));
 			OutHitResult.ImpactPoint = End;
 		} else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Hit: %s"), *OutHitResult.GetActor()->GetName());
 			DrawDebugSphere(GetWorld(), OutHitResult.ImpactPoint, 10.f, 10, FColor::Red);
 		}
 	}
-	else {
-		UE_LOG(LogTemp, Warning, TEXT("No hit"));
-	}
-	
 }
 
 void UCombatComponent::ServerFireButtonPressed_Implementation()
@@ -177,5 +169,7 @@ void UCombatComponent::MulticastFire_Implementation()
 		PlayerAnimInstance->Montage_Play(this->EquippedWeapon->FireMontage);
 		FName FireSection = this->bIsAiming ? FName("Rifle_Aim") : FName("Rifle_Hip");
 		PlayerAnimInstance->Montage_JumpToSection(FireSection);
+		this->TickGetTraceHitRaycast(HitResult);
+		this->EquippedWeapon->Fire(HitResult.ImpactPoint);
 	}
 }

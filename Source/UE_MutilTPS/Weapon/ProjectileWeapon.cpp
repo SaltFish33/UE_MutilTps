@@ -9,12 +9,15 @@
 void AProjectileWeapon::Fire(FVector& HitTarget)
 {
 	Super::Fire(HitTarget);
+	UE_LOG(LogTemp, Warning, TEXT("Fire"));
 	// 生成子弹
 	if (ProjectileClass && HasAuthority())
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Spawn Projectile"));
 		UStaticMeshSocket const* MuzzleFlashSocket = GetWeaponMesh()->GetSocketByName(FName("MuzzleFlash"));
 		if (MuzzleFlashSocket)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("Get Socket Transform"));
 			FTransform SocketTransform;
 			MuzzleFlashSocket->GetSocketTransform(SocketTransform,GetWeaponMesh());
 			FVector ToTarget = HitTarget - SocketTransform.GetLocation();

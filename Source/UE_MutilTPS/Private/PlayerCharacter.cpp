@@ -305,6 +305,10 @@ void APlayerCharacter::ReleaseFire()
 // - 绝对值越大，需要旋转的角度越大
 void APlayerCharacter::SetAimOffset(float DeltaTime)
 {
+	if (this->CombatComponent->EquippedWeapon == nullptr)
+	{
+		return;
+	}
 	// 计算角色在水平面上的移动速度（忽略垂直速度）
 	// 这用于判断角色是否在移动，移动时不需要进行原地转向检测
 	FVector Velocity = this->GetVelocity();

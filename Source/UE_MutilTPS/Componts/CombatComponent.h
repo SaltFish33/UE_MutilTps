@@ -64,7 +64,8 @@ private:
 	bool bIsFiring;
 
 	TObjectPtr<UPlayerAnimInstance> PlayerAnimInstance;
-
 	void TickGetTraceHitRaycast(FHitResult& OutHitResult);
+
+	FHitResult HitResult = FHitResult();
 	
 };

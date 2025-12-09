@@ -23,9 +23,11 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-private:	
+private:
+	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UBoxComponent> CollisionBox;
 
+	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UProjectileMovementComponent> ProjectileMovementComponent;
 
 };

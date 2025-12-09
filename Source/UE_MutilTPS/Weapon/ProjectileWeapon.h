@@ -3,10 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Projectile.h"
 #include "WeaponBase.h"
 #include "ProjectileWeapon.generated.h"
 
-class AProjectile;
 /**
  * 
  */
@@ -19,7 +19,7 @@ public:
 	virtual void Fire(FVector& HitTarget) override;
 
 private:
-	UPROPERTY(EditAnywhere, Category="Weapon|Projectile")
+	UPROPERTY(EditAnywhere, Category="Weapon Projectile")
 	TSubclassOf<AProjectile> ProjectileClass;
 
 };
