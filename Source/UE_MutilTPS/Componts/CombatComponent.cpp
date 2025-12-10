@@ -58,9 +58,7 @@ void UCombatComponent::OnRep_EquippedWeapon()
 
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	UE_LOG(LogTemp, Warning, TEXT("HitResult:"));
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
 }
 
 // EquipWeapon 说明：
@@ -126,7 +124,12 @@ void UCombatComponent::ServerSetAiming_Implementation(bool IsAiming)
 void UCombatComponent::FireButtonPressed(bool bIsPressed)
 {
 	this->bIsFiring = bIsPressed;
-	this->ServerFireButtonPressed();
+	if (bIsPressed && this->EquippedWeapon)
+	{
+		FHitResult HitResult;
+		this->TickGetTraceHitRaycast(HitResult);
+		this->ServerFireButtonPressed(HitResult.ImpactPoint);
+	}
 }
 
 void UCombatComponent::TickGetTraceHitRaycast(FHitResult& OutHitResult)
@@ -157,19 +160,19 @@ void UCombatComponent::TickGetTraceHitRaycast(FHitResult& OutHitResult)
 	}
 }
 
-void UCombatComponent::ServerFireButtonPressed_Implementation()
+void UCombatComponent::ServerFireButtonPressed_Implementation(const FVector_NetQuantize& HitTarget)
 {
-	this->MulticastFire();
+	this->MulticastFire(HitTarget);
 }
 
-void UCombatComponent::MulticastFire_Implementation()
+void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& HitTarget)
 {
 	if (this->EquippedWeapon && this->EquippedWeapon->FireMontage && PlayerAnimInstance)
 	{
 		PlayerAnimInstance->Montage_Play(this->EquippedWeapon->FireMontage);
 		FName FireSection = this->bIsAiming ? FName("Rifle_Aim") : FName("Rifle_Hip");
 		PlayerAnimInstance->Montage_JumpToSection(FireSection);
-		this->TickGetTraceHitRaycast(HitResult);
-		this->EquippedWeapon->Fire(HitResult.ImpactPoint);
+		
+		this->EquippedWeapon->Fire(HitTarget);
 	}
 }

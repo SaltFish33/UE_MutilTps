@@ -103,7 +103,7 @@ void AWeaponBase::OnSphereEndOverLap(UPrimitiveComponent* OverlappedComponent, A
 	}
 }
 
-void AWeaponBase::Fire(FVector& HitTarget)
+void AWeaponBase::Fire(const FVector_NetQuantize& HitTarget)
 {
 	
 }

@@ -41,10 +41,10 @@ protected:
 	void FireButtonPressed(bool bIsPressed);
 
 	UFUNCTION(Server, Reliable)
-	void ServerFireButtonPressed();
+	void ServerFireButtonPressed(const FVector_NetQuantize& HitTarget);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastFire();
+	void MulticastFire(const FVector_NetQuantize& HitTarget);
 
 private:
 	UPROPERTY(ReplicatedUsing=OnRep_EquippedWeapon)
@@ -65,7 +65,5 @@ private:
 
 	TObjectPtr<UPlayerAnimInstance> PlayerAnimInstance;
 	void TickGetTraceHitRaycast(FHitResult& OutHitResult);
-
-	FHitResult HitResult = FHitResult();
 	
 };

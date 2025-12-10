@@ -16,7 +16,7 @@ class UE_MUTILTPS_API AProjectileWeapon : public AWeaponBase
 	GENERATED_BODY()
 
 public:
-	virtual void Fire(FVector& HitTarget) override;
+	virtual void Fire(const FVector_NetQuantize& HitTarget) override;
 
 private:
 	UPROPERTY(EditAnywhere, Category="Weapon Projectile")

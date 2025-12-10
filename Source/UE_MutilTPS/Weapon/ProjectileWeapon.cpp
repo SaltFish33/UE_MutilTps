@@ -6,7 +6,7 @@
 #include "Projectile.h"
 #include "Engine/StaticMeshSocket.h"
 
-void AProjectileWeapon::Fire(FVector& HitTarget)
+void AProjectileWeapon::Fire(const FVector_NetQuantize& HitTarget)
 {
 	Super::Fire(HitTarget);
 	UE_LOG(LogTemp, Warning, TEXT("Fire"));
