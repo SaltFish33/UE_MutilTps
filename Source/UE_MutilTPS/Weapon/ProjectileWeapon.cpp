@@ -13,11 +13,9 @@ void AProjectileWeapon::Fire(const FVector_NetQuantize& HitTarget)
 	// 生成子弹
 	if (ProjectileClass && HasAuthority())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Spawn Projectile"));
 		UStaticMeshSocket const* MuzzleFlashSocket = GetWeaponMesh()->GetSocketByName(FName("MuzzleFlash"));
 		if (MuzzleFlashSocket)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Get Socket Transform"));
 			FTransform SocketTransform;
 			MuzzleFlashSocket->GetSocketTransform(SocketTransform,GetWeaponMesh());
 			FVector ToTarget = HitTarget - SocketTransform.GetLocation();

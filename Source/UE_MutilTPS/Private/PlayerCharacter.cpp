@@ -356,7 +356,6 @@ void APlayerCharacter::SetAimOffset(float DeltaTime)
 		{
 			InterpAO_Yaw = AO_Yaw;
 		}
-		UE_LOG(LogTemp, Log, TEXT("AO_Yaw: %f"), AO_Yaw);
 		
 		// 调用转向检测和处理函数
 		// 如果 AO_Yaw 超过阈值，会触发代码驱动旋转
