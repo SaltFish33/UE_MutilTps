@@ -11,9 +11,11 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Camera/CameraComponent.h"
 #include "UE_MutilTPS/Animation/PlayerAnimInstance.h"
 #include "UE_MutilTPS/Weapon/WeaponBase.h"
 #include "UE_MutilTPS/Widget/PlayerHUD.h"
+#include "UE_MutilTPS/Interfaces/InteractWithCrosshairInterface.h"
 
 #define TRACE_LENGTH 8000.f
 
@@ -24,6 +26,9 @@ UCombatComponent::UCombatComponent()
 	NormalMaxWalkSpeed = 600.f;
 	AimingMaxWalkSpeed = 450.f;
 	bIsFiring = false;
+	CurrentTargetFOV = DefaultFOV;
+	CurrentCrosshairShootingFactor = 0.0f;
+	bIsAimingAtInteractable = false;
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -37,6 +42,24 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty
 void UCombatComponent::CustomTick(float DeltaTime)
 {
 	this->SetPlayerHUD(DeltaTime);
+	this->UpdateCameraFOV(DeltaTime);
+	if (this->PlayerCharacter->IsLocallyControlled())
+	{
+		FHitResult HitResult;
+		this->TickGetTraceHitRaycast(HitResult);
+		this->TraceHitTarget = HitResult.ImpactPoint;
+		
+		// 检测是否瞄准到实现了接口的对象
+		if (HitResult.bBlockingHit && HitResult.GetActor())
+		{
+			// 检查命中的Actor是否实现了IInteractWithCrosshairInterface接口
+			this->bIsAimingAtInteractable = HitResult.GetActor()->GetClass()->ImplementsInterface(UInteractWithCrosshairInterface::StaticClass());
+		}
+		else
+		{
+			this->bIsAimingAtInteractable = false;
+		}
+	}
 }
 
 
@@ -71,14 +94,59 @@ void UCombatComponent::SetPlayerHUD(float DeltaTime)
 		// 空中时，插值计算
 		if (PlayerCharacter->GetCharacterMovement()->IsFalling())
 		{
-
 			this->CrosshairInAirFactor = FMath::FInterpTo(this->CrosshairInAirFactor, 2.25f, DeltaTime, 2.25f);
 		} else
 		{
 			this->CrosshairInAirFactor = FMath::FInterpTo(this->CrosshairInAirFactor, 0.f, DeltaTime, 30.f);
 		}
-		HUDPackage.CrosshairSpread = this->CrosshairVelocityFactor + this->CrosshairInAirFactor;
+		
+		// ========== 瞄准时的准星缩小 ==========
+		// 瞄准时，准星会变得更紧凑（扩散值减小），提供更精确的瞄准体验
+		// 原理：将基础扩散值乘以瞄准因子（小于1的值），使准星缩小
+		// 例如：CrosshairAimingFactor = 0.5，则瞄准时扩散值减半
+		float AimingFactor = 1.0f;
+		if (this->bIsAiming)
+		{
+			AimingFactor = this->CrosshairAimingFactor;
+		}
+		
+		// ========== 开火时的准星扩大 ==========
+		// 开火时，准星会扩大（扩散值增大），模拟后坐力和射击精度下降
+		// 原理：在基础扩散值上增加开火因子，开火时快速增加，停止开火后逐渐恢复
+		if (this->bIsFiring)
+		{
+			// 开火时，将开火因子快速插值到目标值（CrosshairShootingFactor）
+			// 使用2倍恢复速度，使开火效果更明显
+			this->CurrentCrosshairShootingFactor = FMath::FInterpTo(
+				this->CurrentCrosshairShootingFactor, 
+				this->CrosshairShootingFactor, 
+				DeltaTime, 
+				this->CrosshairShootingRecoverySpeed * 2.0f
+			);
+		}
+		else
+		{
+			// 停止开火后，逐渐恢复准星（插值回0）
+			// 使用正常的恢复速度，提供平滑的恢复效果
+			this->CurrentCrosshairShootingFactor = FMath::FInterpTo(
+				this->CurrentCrosshairShootingFactor, 
+				0.0f, 
+				DeltaTime, 
+				this->CrosshairShootingRecoverySpeed
+			);
+		}
+		
+		// ========== 计算最终准星扩散值 ==========
+		// 公式：最终扩散 = (速度因子 + 空中因子) * 瞄准因子 + 开火因子
+		// - 速度因子：移动速度越大，扩散越大
+		// - 空中因子：在空中时，扩散增大
+		// - 瞄准因子：瞄准时，基础扩散值减小（乘以小于1的因子，使准星更紧凑）
+		// - 开火因子：开火时，在基础扩散上增加开火扩散值（使准星扩大）
+		float BaseSpread = (this->CrosshairVelocityFactor + this->CrosshairInAirFactor) * AimingFactor;
+		HUDPackage.CrosshairSpread = BaseSpread + this->CurrentCrosshairShootingFactor;
 
+		// 设置是否瞄准到可交互对象（用于准星变红）
+		HUDPackage.bIsAimingAtInteractable = this->bIsAimingAtInteractable;
 
 		this->PlayerHUD->SetHUDPackage(HUDPackage);
 	}
@@ -91,6 +159,12 @@ void UCombatComponent::BeginPlay()
 	if (PlayerCharacter)
 	{
 		PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = NormalMaxWalkSpeed;
+		// 初始化FOV为默认值
+		if (PlayerCharacter->IsLocallyControlled() && PlayerCharacter->Camera)
+		{
+			CurrentTargetFOV = DefaultFOV;
+			PlayerCharacter->Camera->SetFieldOfView(DefaultFOV);
+		}
 	}
 	
 }
@@ -99,8 +173,30 @@ void UCombatComponent::OnRep_EquippedWeapon()
 {
 	if (this->EquippedWeapon && PlayerCharacter)
 	{
+		// 客户端复制武器后，需要重新附着武器到Socket，确保旋转同步
+		// 这是因为AttachActor操作只在服务器执行，客户端需要通过RepNotify重新执行
+		const USkeletalMeshSocket* RightHandSocket = PlayerCharacter->GetMesh()->GetSocketByName(FName("RightHandSocket"));
+		if (RightHandSocket)
+		{
+			// 在客户端重新附着武器，确保武器旋转与服务器同步
+			RightHandSocket->AttachActor(EquippedWeapon, PlayerCharacter->GetMesh());
+		}
+		
 		PlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
 		PlayerCharacter->bUseControllerRotationYaw = true;
+		// 客户端复制武器后，根据当前瞄准状态更新FOV
+		if (PlayerCharacter->IsLocallyControlled())
+		{
+			this->SetTargetFOV(this->bIsAiming);
+		}
+	}
+	else
+	{
+		// 卸下武器后，恢复默认FOV
+		if (PlayerCharacter && PlayerCharacter->IsLocallyControlled())
+		{
+			this->SetTargetFOV(false);
+		}
 	}
 }
 
@@ -146,10 +242,21 @@ void UCombatComponent::EquipWeapon(AWeaponBase* Weapon)
 	PlayerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
 	PlayerCharacter->bUseControllerRotationYaw = true;
 	
+	// 装备武器后，根据当前瞄准状态更新FOV（仅在本地控制的客户端执行）
+	if (PlayerCharacter->IsLocallyControlled())
+	{
+		this->SetTargetFOV(this->bIsAiming);
+	}
 }
 
 void UCombatComponent::SetAiming(bool IsAiming)
 {
+	// 检查是否装备了武器，未装备武器时不允许瞄准
+	if (IsAiming && (!EquippedWeapon || EquippedWeapon == nullptr))
+	{
+		return;
+	}
+	
 	this->bIsAiming = IsAiming;
 	if (!PlayerCharacter->HasAuthority())
 	{
@@ -159,10 +266,21 @@ void UCombatComponent::SetAiming(bool IsAiming)
 	{
 		PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = this->bIsAiming ? AimingMaxWalkSpeed : NormalMaxWalkSpeed;
 	}
+	// 设置目标FOV（仅在本地控制的客户端执行，因为FOV是本地视觉效果）
+	if (PlayerCharacter && PlayerCharacter->IsLocallyControlled())
+	{
+		this->SetTargetFOV(IsAiming);
+	}
 }
 
 void UCombatComponent::ServerSetAiming_Implementation(bool IsAiming)
 {
+	// 检查是否装备了武器，未装备武器时不允许瞄准
+	if (IsAiming && (!EquippedWeapon || EquippedWeapon == nullptr))
+	{
+		return;
+	}
+	
 	this->bIsAiming = IsAiming;
 	if (PlayerCharacter)
 	{
@@ -196,15 +314,19 @@ void UCombatComponent::TickGetTraceHitRaycast(FHitResult& OutHitResult)
 	bool bSceneToWorld = UGameplayStatics::DeprojectScreenToWorld(UGameplayStatics::GetPlayerController(GetWorld(), 0), ViewCenterPos, WorldPosition, WorldDirection);
 	if (bSceneToWorld)
 	{
-		FVector Start = WorldPosition;
+		// 将起始点从相机位置向前推进50厘米，避免射线打到玩家身后的对象
+		const float TraceStartOffset = 50.0f;
+		FVector Start = WorldPosition + WorldDirection * TraceStartOffset;
 		FVector End = Start + WorldDirection * TRACE_LENGTH;
-		GetWorld()->LineTraceSingleByChannel(OutHitResult, Start, End, ECC_Visibility);
+		
+		// 忽略玩家自身，避免射线打到玩家自己的碰撞体
+		FCollisionQueryParams QueryParams;
+		QueryParams.AddIgnoredActor(PlayerCharacter);
+		
+		GetWorld()->LineTraceSingleByChannel(OutHitResult, Start, End, ECC_Visibility, QueryParams);
 		if (!OutHitResult.bBlockingHit)
 		{
 			OutHitResult.ImpactPoint = End;
-		} else
-		{
-			DrawDebugSphere(GetWorld(), OutHitResult.ImpactPoint, 10.f, 10, FColor::Red);
 		}
 	}
 }
@@ -224,4 +346,62 @@ void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& H
 		
 		this->EquippedWeapon->Fire(HitTarget);
 	}
+}
+
+// SetTargetFOV 说明：
+// 根据瞄准状态和当前装备的武器设置目标FOV。
+// - 如果武器设置了自定义FOV，则使用武器的FOV值
+// - 如果武器没有设置FOV（值为0），则使用CombatComponent的默认FOV值
+// - 仅在本地控制的客户端执行，因为FOV是本地视觉效果
+void UCombatComponent::SetTargetFOV(bool bCurIsAiming)
+{
+	if (!PlayerCharacter || !PlayerCharacter->IsLocallyControlled())
+	{
+		return;
+	}
+
+	float TargetFOV = DefaultFOV;
+
+	if (bCurIsAiming)
+	{
+		// 瞄准状态：优先使用武器的瞄准FOV，如果为0则使用默认瞄准FOV
+		if (EquippedWeapon && EquippedWeapon->AimingFOV > 0.0f)
+		{
+			TargetFOV = EquippedWeapon->AimingFOV;
+		}
+		else
+		{
+			TargetFOV = DefaultAimingFOV;
+		}
+	}
+	else
+	{
+		// 非瞄准状态：优先使用武器的默认FOV，如果为0则使用CombatComponent的默认FOV
+		if (EquippedWeapon && EquippedWeapon->DefaultFOV > 0.0f)
+		{
+			TargetFOV = EquippedWeapon->DefaultFOV;
+		}
+		else
+		{
+			TargetFOV = DefaultFOV;
+		}
+	}
+
+	CurrentTargetFOV = TargetFOV;
+}
+
+// UpdateCameraFOV 说明：
+// 每帧调用，通过插值平滑地将相机FOV过渡到目标FOV。
+// - 使用FInterpTo进行平滑插值，避免FOV突然变化
+// - 仅在本地控制的客户端执行，因为FOV是本地视觉效果
+void UCombatComponent::UpdateCameraFOV(float DeltaTime)
+{
+	if (!PlayerCharacter || !PlayerCharacter->IsLocallyControlled() || !PlayerCharacter->Camera)
+	{
+		return;
+	}
+
+	float CurrentFOV = PlayerCharacter->Camera->FieldOfView;
+	float NewFOV = FMath::FInterpTo(CurrentFOV, CurrentTargetFOV, DeltaTime, FOVInterpSpeed);
+	PlayerCharacter->Camera->SetFieldOfView(NewFOV);
 }

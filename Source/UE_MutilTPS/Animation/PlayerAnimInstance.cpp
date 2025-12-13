@@ -147,5 +147,22 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	// 把转换后的位置信息写回 LeftHandTransform 以供蓝图读取（保持旋转信息为骨骼空间的旋转）
 	this->LeftHandTransform.SetLocation(OutLocation);
 	this->LeftHandTransform.SetRotation(FQuat(OutRotation));
+
+	// ----------------------------
+	// 7) 右手旋转（用于武器瞄准IK）
+	// ----------------------------
+	// 获取角色骨骼上的右手Socket位置（hand_r），用于计算武器瞄准方向
+	// 注意：这里使用角色骨骼的Socket，而不是武器的Socket
+	FTransform RightHandSocketTransform = PlayerCharacter->GetMesh()->GetSocketTransform(FName("hand_r"), RTS_World);
+	FVector RightHandLocation = RightHandSocketTransform.GetLocation();
+	FVector TargetLocation = RightHandSocketTransform.GetLocation() + (RightHandSocketTransform.GetLocation() - PlayerCharacter->GetTraceHitTarget());
+	
+	// 计算从右手位置到瞄准目标的旋转
+	// FindLookAtRotation(起始位置, 目标位置) - 计算从起始位置看向目标位置的旋转
+	FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(RightHandLocation, TargetLocation);
+	
+	// 使用插值平滑过渡，避免旋转突然变化
+	RightHandRotation = FMath::RInterpTo(RightHandRotation, LookAtRotation, DeltaSeconds, 4.f);
+	
 }
 

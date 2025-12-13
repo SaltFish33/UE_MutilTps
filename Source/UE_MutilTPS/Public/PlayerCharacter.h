@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "UE_MutilTPS/Componts/CombatComponent.h"
+#include "UE_MutilTPS/Interfaces/InteractWithCrosshairInterface.h"
 #include "PlayerCharacter.generated.h"
 
 enum class ETurningInPlace : uint8;
@@ -16,7 +17,6 @@ class UCameraComponent;
 class USpringArmComponent;
 class UInputMappingContext;
 class UInputAction;
-
 // 文件/类说明：
 // APlayerCharacter 表示玩家控制的 Character，包括摄像机、输入、与武器交互的基本逻辑。
 // 重要约定：
@@ -24,7 +24,7 @@ class UInputAction;
 // - InputMappingContext 与 InputAction 用于 Enhanced Input 系统，需在运行时把 MappingContext 添加到本地子系统。
 
 UCLASS()
-class UE_MUTILTPS_API APlayerCharacter : public ACharacter
+class UE_MUTILTPS_API APlayerCharacter : public ACharacter, public IInteractWithCrosshairInterface
 {
 	GENERATED_BODY()
 
@@ -87,7 +87,12 @@ public:
 
 	FORCEINLINE
 	ETurningInPlace GetTurningInPlaceType() const { return TurningInPlaceType; }
-	
+
+	FORCEINLINE
+	FVector GetTraceHitTarget() const { return this->CombatComponent ? this->CombatComponent->GetTraceHitTarget() : FVector(0.f); }
+
+	UPROPERTY(VisibleAnywhere, Category="Camera")
+	TObjectPtr<UCameraComponent> Camera;
 protected:
 	virtual void BeginPlay() override;
 
@@ -96,8 +101,7 @@ private:
 	UPROPERTY(VisibleAnywhere, Category="Camera")
 	TObjectPtr<USpringArmComponent> SpringArm;
 
-	UPROPERTY(VisibleAnywhere, Category="Camera")
-	TObjectPtr<UCameraComponent> Camera;
+	
 
 	void InitInputMapping();
 
@@ -118,6 +122,7 @@ private:
 	void RotateCharacterForTurning(float DeltaTime);
 	void PressFire();
 	void ReleaseFire();
+	void CheckCameraOverlap();
 	
 
 	// 头顶 Widget（通常用于显示玩家名字/状态）

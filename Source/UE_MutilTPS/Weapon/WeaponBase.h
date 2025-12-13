@@ -64,6 +64,15 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category="Weapon Properties")
 	TObjectPtr<UTexture2D> CrosshairsBottom;
+
+	// 相机FOV相关属性
+	// 默认FOV（正常视角），如果为0则使用CombatComponent的默认值
+	UPROPERTY(EditDefaultsOnly, Category="Weapon Properties|Camera", meta=(ClampMin="0.0", ClampMax="170.0"))
+	float DefaultFOV = 0.0f;
+
+	// 瞄准时的FOV（更小的FOV提供更窄的视野，类似瞄准镜效果），如果为0则使用CombatComponent的默认值
+	UPROPERTY(EditDefaultsOnly, Category="Weapon Properties|Camera", meta=(ClampMin="0.0", ClampMax="170.0"))
+	float AimingFOV = 0.0f;
 	
 protected:
 	virtual void BeginPlay() override;

@@ -53,6 +53,7 @@ APlayerCharacter::APlayerCharacter()
 
 	this->GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 	this->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	this->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 	this->TurningInPlaceType = ETurningInPlace::ETP_InPlace;
 	
 	// 初始化代码驱动旋转相关变量
@@ -120,6 +121,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	
 	this->SetAimOffset(DeltaTime);
+	this->CheckCameraOverlap();
 	if (this->CombatComponent)
 	{
 		this->CombatComponent->CustomTick(DeltaTime);
@@ -626,5 +628,66 @@ void APlayerCharacter::RotateCharacterForTurning(float DeltaTime)
 		
 		// 恢复 CharacterMovementComponent 的自动旋转功能
 		this->GetCharacterMovement()->bOrientRotationToMovement = true;
+	}
+}
+
+// CheckCameraOverlap 说明：
+// 此函数检测相机是否与角色重叠，如果重叠则隐藏角色Mesh，避免相机被角色遮挡。
+//
+// 检测原理：
+// 1. 获取相机位置和角色胶囊体中心位置
+// 2. 计算相机到胶囊体中心的距离
+// 3. 如果距离小于胶囊体半径，则认为相机与角色重叠
+// 4. 重叠时隐藏Mesh，不重叠时恢复显示
+//
+// 注意：
+// - 仅在本地控制的角色上执行（因为这是视觉效果，不需要网络同步）
+// - 使用SetOwnerNoSee来隐藏Mesh，这样只有拥有者看不到，其他玩家仍然可以看到
+void APlayerCharacter::CheckCameraOverlap()
+{
+	// 仅在本地控制的角色上执行
+	if (!IsLocallyControlled() || !Camera || !GetMesh())
+	{
+		return;
+	}
+
+	// 获取相机位置
+	FVector CameraLocation = Camera->GetComponentLocation();
+	
+	// 获取角色胶囊体中心位置和半径
+	UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
+	if (!CapsuleComp)
+	{
+		return;
+	}
+	
+	FVector CapsuleCenter = CapsuleComp->GetComponentLocation();
+	float CapsuleRadius = CapsuleComp->GetScaledCapsuleRadius();
+	
+	// 计算相机到胶囊体中心的水平距离（忽略垂直距离）
+	FVector ToCamera = CameraLocation - CapsuleCenter;
+	ToCamera.Z = 0.0f; // 忽略垂直距离，只考虑水平距离
+	float HorizontalDistance = ToCamera.Size();
+	
+	// 如果水平距离小于胶囊体半径，则认为相机与角色重叠
+	// 添加一个小的缓冲值（10厘米），避免在边界处频繁切换
+	const float OverlapThreshold = CapsuleRadius + 10.0f;
+	bool bShouldHide = HorizontalDistance < OverlapThreshold;
+	
+	// 设置角色Mesh的可见性
+	// SetOwnerNoSee(true) 表示只有拥有者看不到，其他玩家仍然可以看到
+	// 这样在多人游戏中，其他玩家仍然可以看到你的角色
+	GetMesh()->SetOwnerNoSee(bShouldHide);
+	
+	// 设置武器的可见性（如果装备了武器）
+	// 当角色隐藏时，武器也应该隐藏，保持一致性
+	if (CombatComponent && CombatComponent->EquippedWeapon)
+	{
+		UStaticMeshComponent* WeaponMesh = CombatComponent->EquippedWeapon->GetWeaponMesh();
+		if (WeaponMesh)
+		{
+			// 武器的可见性与角色保持一致
+			WeaponMesh->SetOwnerNoSee(bShouldHide);
+		}
 	}
 }
