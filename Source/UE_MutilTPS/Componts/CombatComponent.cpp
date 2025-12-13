@@ -7,10 +7,13 @@
 #include "CombatComponent.h"
 
 #include "PlayerCharacter.h"
+#include "PlayerCharacterController.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "UE_MutilTPS/Animation/PlayerAnimInstance.h"
 #include "UE_MutilTPS/Weapon/WeaponBase.h"
+#include "UE_MutilTPS/Widget/PlayerHUD.h"
 
 #define TRACE_LENGTH 8000.f
 
@@ -33,8 +36,54 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty
 
 void UCombatComponent::CustomTick(float DeltaTime)
 {
+	this->SetPlayerHUD(DeltaTime);
 }
 
+
+void UCombatComponent::SetPlayerHUD(float DeltaTime)
+{
+	if (this->PlayerCharacter == nullptr || this->PlayerCharacter->Controller == nullptr) return;
+	if (this->PlayerCharacterController == nullptr)
+	{
+		this->PlayerCharacterController = Cast<APlayerCharacterController>(this->PlayerCharacter->Controller);
+	}
+	if (this->PlayerHUD == nullptr)
+	{
+		this->PlayerHUD = Cast<APlayerHUD>(this->PlayerCharacterController->GetHUD());
+	}
+	if (this->PlayerHUD)
+	{
+		FCrosshairData HUDPackage;
+		HUDPackage.CrosshairsCenter = this->EquippedWeapon ? this->EquippedWeapon->CrosshairsCenter : nullptr;
+		HUDPackage.CrosshairsLeft = this->EquippedWeapon ? this->EquippedWeapon->CrosshairsLeft : nullptr;
+		HUDPackage.CrosshairsRight = this->EquippedWeapon ? this->EquippedWeapon->CrosshairsRight : nullptr;
+		HUDPackage.CrosshairsTop = this->EquippedWeapon ? this->EquippedWeapon->CrosshairsTop : nullptr;
+		HUDPackage.CrosshairsBottom = this->EquippedWeapon ? this->EquippedWeapon->CrosshairsBottom : nullptr;
+		
+		// 计算准星扩散
+		// 移动时，通过速度计算，拿到玩家最大速度，映射到[0,1]之间，然后设置
+		FVector2D VelocityFactor = FVector2D(0.f, PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed);
+		FVector2D TargetRange = FVector2D(0.f, 1.f);
+		FVector PlayerVelocity = PlayerCharacter->GetVelocity();
+		PlayerVelocity.Z = 0;
+		this->CrosshairVelocityFactor = FMath::GetMappedRangeValueClamped(VelocityFactor, TargetRange, PlayerVelocity.Size());
+		
+		// 空中时，插值计算
+		if (PlayerCharacter->GetCharacterMovement()->IsFalling())
+		{
+
+			this->CrosshairInAirFactor = FMath::FInterpTo(this->CrosshairInAirFactor, 2.25f, DeltaTime, 2.25f);
+		} else
+		{
+			this->CrosshairInAirFactor = FMath::FInterpTo(this->CrosshairInAirFactor, 0.f, DeltaTime, 30.f);
+		}
+		HUDPackage.CrosshairSpread = this->CrosshairVelocityFactor + this->CrosshairInAirFactor;
+
+
+		this->PlayerHUD->SetHUDPackage(HUDPackage);
+	}
+	
+}
 void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();

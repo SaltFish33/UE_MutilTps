@@ -49,6 +49,21 @@ public:
 	TObjectPtr<UAnimMontage> FireMontage;
 
 	virtual void Fire(const FVector_NetQuantize& HitTarget);
+
+	UPROPERTY(EditDefaultsOnly, Category="Weapon Properties")
+	TObjectPtr<UTexture2D> CrosshairsCenter;
+
+	UPROPERTY(EditDefaultsOnly, Category="Weapon Properties")
+	TObjectPtr<UTexture2D> CrosshairsLeft;
+
+	UPROPERTY(EditDefaultsOnly, Category="Weapon Properties")
+	TObjectPtr<UTexture2D> CrosshairsRight;
+
+	UPROPERTY(EditDefaultsOnly, Category="Weapon Properties")
+	TObjectPtr<UTexture2D> CrosshairsTop;
+
+	UPROPERTY(EditDefaultsOnly, Category="Weapon Properties")
+	TObjectPtr<UTexture2D> CrosshairsBottom;
 	
 protected:
 	virtual void BeginPlay() override;

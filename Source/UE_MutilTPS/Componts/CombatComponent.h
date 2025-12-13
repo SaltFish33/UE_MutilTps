@@ -9,6 +9,8 @@
 
 class UPlayerAnimInstance;
 class AWeaponBase;
+class APlayerCharacterController;
+class APlayerHUD;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UE_MUTILTPS_API UCombatComponent : public UActorComponent
@@ -46,6 +48,9 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastFire(const FVector_NetQuantize& HitTarget);
 
+	TObjectPtr<APlayerCharacterController> PlayerCharacterController;
+	TObjectPtr<APlayerHUD> PlayerHUD;
+
 private:
 	UPROPERTY(ReplicatedUsing=OnRep_EquippedWeapon)
 	TObjectPtr<AWeaponBase> EquippedWeapon;
@@ -65,5 +70,12 @@ private:
 
 	TObjectPtr<UPlayerAnimInstance> PlayerAnimInstance;
 	void TickGetTraceHitRaycast(FHitResult& OutHitResult);
-	
+
+	void SetPlayerHUD(float DeltaTime);
+
+	UPROPERTY(EditDefaultsOnly)
+	float CrosshairVelocityFactor;
+
+	UPROPERTY(EditDefaultsOnly)
+	float CrosshairInAirFactor;
 };
