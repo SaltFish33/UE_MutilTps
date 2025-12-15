@@ -32,6 +32,10 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerSetAiming(bool IsAiming);
 
+	// Server RPC：客户端发送TraceHitTarget到服务器
+	UFUNCTION(Server, Reliable)
+	void ServerUpdateTraceHitTarget(const FVector_NetQuantize& HitTarget);
+
 	void CustomTick(float DeltaTime);
 
 	FORCEINLINE FVector& GetTraceHitTarget() { return this->TraceHitTarget; }
@@ -100,6 +104,8 @@ private:
 	// 是否瞄准到实现了接口的对象（用于准星变红）
 	bool bIsAimingAtInteractable = false;
 
+	// 瞄准目标位置（用于武器IK和动画），需要网络复制以便远程客户端正确显示武器旋转
+	UPROPERTY(Replicated)
 	FVector TraceHitTarget;
 
 	// 相机FOV相关参数

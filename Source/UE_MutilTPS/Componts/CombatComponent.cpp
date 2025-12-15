@@ -36,6 +36,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
 	DOREPLIFETIME(UCombatComponent, bIsAiming);
+	DOREPLIFETIME(UCombatComponent, TraceHitTarget);
 }
 
 
@@ -43,11 +44,25 @@ void UCombatComponent::CustomTick(float DeltaTime)
 {
 	this->SetPlayerHUD(DeltaTime);
 	this->UpdateCameraFOV(DeltaTime);
+	
+	// 只在本地控制的客户端执行射线检测（需要相机和视口信息）
 	if (this->PlayerCharacter->IsLocallyControlled())
 	{
 		FHitResult HitResult;
 		this->TickGetTraceHitRaycast(HitResult);
-		this->TraceHitTarget = HitResult.ImpactPoint;
+		
+		// 如果是在服务器上（Listen Server），直接更新TraceHitTarget
+		// 如果是客户端，需要通过Server RPC发送到服务器，但本地也立即更新以避免延迟
+		if (this->PlayerCharacter->HasAuthority())
+		{
+			this->TraceHitTarget = HitResult.ImpactPoint;
+		}
+		else
+		{
+			// 客户端：立即更新本地值（用于本地显示），同时通过Server RPC发送到服务器（用于网络同步）
+			this->TraceHitTarget = HitResult.ImpactPoint;
+			this->ServerUpdateTraceHitTarget(HitResult.ImpactPoint);
+		}
 		
 		// 检测是否瞄准到实现了接口的对象
 		if (HitResult.bBlockingHit && HitResult.GetActor())
@@ -286,6 +301,12 @@ void UCombatComponent::ServerSetAiming_Implementation(bool IsAiming)
 	{
 		PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = this->bIsAiming ? AimingMaxWalkSpeed : NormalMaxWalkSpeed;
 	}
+}
+
+void UCombatComponent::ServerUpdateTraceHitTarget_Implementation(const FVector_NetQuantize& HitTarget)
+{
+	// 服务器接收客户端发送的TraceHitTarget并更新，然后复制到所有客户端
+	this->TraceHitTarget = HitTarget;
 }
 
 void UCombatComponent::FireButtonPressed(bool bIsPressed)
